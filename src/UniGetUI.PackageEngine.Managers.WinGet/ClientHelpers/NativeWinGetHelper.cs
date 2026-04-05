@@ -647,12 +647,12 @@ internal sealed class NativeWinGetHelper : IWinGetManagerHelper
         List<string> output = [];
         ProcessStartInfo startInfo = new()
         {
-            FileName = Manager.Status.ExecutablePath,
+            FileName = WinGet.BundledWinGetPath,
             Arguments =
                 Manager.Status.ExecutableCallArgs
                 + " show "
                 + WinGetPkgOperationHelper.GetIdNamePiece(details.Package)
-                + " --disable-interactivity --accept-source-agreements --locale en-US --source "
+                + " --disable-interactivity --accept-source-agreements --source "
                 + details.Package.Source.Name,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
