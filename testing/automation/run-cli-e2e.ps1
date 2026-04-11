@@ -1,12 +1,37 @@
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..')
+$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $srcRoot = Join-Path $repoRoot 'src'
 $configuration = if ($env:CONFIGURATION) { $env:CONFIGURATION } else { 'Release' }
 
-$daemonDll = Join-Path $srcRoot "UniGetUI.Avalonia\bin\$configuration\net10.0\UniGetUI.Avalonia.dll"
-$cliDll = Join-Path $srcRoot "UniGetUI.Cli\bin\$configuration\net10.0\UniGetUI.Cli.dll"
+function Resolve-BuildArtifact {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $ProjectName,
+        [Parameter(Mandatory = $true)]
+        [string] $AssemblyName
+    )
+
+    $binRoot = Join-Path (Join-Path $srcRoot $ProjectName) 'bin'
+    $separator = [System.IO.Path]::DirectorySeparatorChar
+    $configurationSegment = [string]::Concat($separator, $configuration, $separator)
+    $targetFrameworkSegment = [string]::Concat($separator, 'net10.0', $separator)
+
+    $candidate = Get-ChildItem -Path $binRoot -Recurse -Filter $AssemblyName -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName.Contains($configurationSegment) -and $_.FullName.Contains($targetFrameworkSegment) } |
+        Sort-Object LastWriteTimeUtc -Descending |
+        Select-Object -First 1
+
+    if ($null -eq $candidate) {
+        throw "Assembly $AssemblyName not found under $binRoot"
+    }
+
+    return $candidate.FullName
+}
+
+$daemonDll = Resolve-BuildArtifact -ProjectName 'UniGetUI.Avalonia' -AssemblyName 'UniGetUI.Avalonia.dll'
+$cliDll = Resolve-BuildArtifact -ProjectName 'UniGetUI.Cli' -AssemblyName 'UniGetUI.Cli.dll'
 
 if (-not (Test-Path $daemonDll)) {
     throw "Daemon assembly not found at $daemonDll"
@@ -15,6 +40,9 @@ if (-not (Test-Path $daemonDll)) {
 if (-not (Test-Path $cliDll)) {
     throw "CLI assembly not found at $cliDll"
 }
+
+$daemonDll = (Resolve-Path $daemonDll).Path
+$cliDll = (Resolve-Path $cliDll).Path
 
 $daemonRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("unigetui-headless-" + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $daemonRoot | Out-Null
