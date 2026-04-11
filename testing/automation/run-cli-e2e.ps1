@@ -5,71 +5,19 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $srcRoot = Join-Path $repoRoot 'src'
 $configuration = if ($env:CONFIGURATION) { $env:CONFIGURATION } else { 'Release' }
 
-function Resolve-BuildArtifact {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $ProjectName,
-        [Parameter(Mandatory = $true)]
-        [string] $AssemblyName
-    )
+$daemonProject = Join-Path (Join-Path $srcRoot 'UniGetUI.Avalonia') 'UniGetUI.Avalonia.csproj'
+$cliProject = Join-Path (Join-Path $srcRoot 'UniGetUI.Cli') 'UniGetUI.Cli.csproj'
 
-    $binRoot = Join-Path (Join-Path $srcRoot $ProjectName) 'bin'
-    $separator = [System.IO.Path]::DirectorySeparatorChar
-    $configurationSegment = [string]::Concat($separator, $configuration, $separator)
-    $targetFrameworkSegment = [string]::Concat($separator, 'net10.0', $separator)
-    $processArchitecture = [System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString().ToLowerInvariant()
-    $processArchitectureSegment = [string]::Concat($separator, $processArchitecture, $separator)
-    $knownArchitectureSegments = @('x86', 'x64', 'arm64') | ForEach-Object {
-        [string]::Concat($separator, $_, $separator)
-    }
-
-    $candidate = Get-ChildItem -Path $binRoot -Recurse -Filter $AssemblyName -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName.Contains($configurationSegment) -and $_.FullName.Contains($targetFrameworkSegment) } |
-        Sort-Object `
-            @{ Expression = {
-                    if ($_.FullName.Contains($processArchitectureSegment)) {
-                        2
-                    }
-                    else {
-                        $hasDifferentArchitectureSegment = $false
-                        foreach ($architectureSegment in $knownArchitectureSegments) {
-                            if ($architectureSegment -ne $processArchitectureSegment -and $_.FullName.Contains($architectureSegment)) {
-                                $hasDifferentArchitectureSegment = $true
-                                break
-                            }
-                        }
-
-                        if (-not $hasDifferentArchitectureSegment) {
-                            1
-                        }
-                        else {
-                            0
-                        }
-                    }
-                }; Descending = $true },
-            @{ Expression = 'LastWriteTimeUtc'; Descending = $true } |
-        Select-Object -First 1
-
-    if ($null -eq $candidate) {
-        throw "Assembly $AssemblyName not found under $binRoot"
-    }
-
-    return $candidate.FullName
+if (-not (Test-Path $daemonProject)) {
+    throw "Daemon project not found at $daemonProject"
 }
 
-$daemonDll = Resolve-BuildArtifact -ProjectName 'UniGetUI.Avalonia' -AssemblyName 'UniGetUI.Avalonia.dll'
-$cliDll = Resolve-BuildArtifact -ProjectName 'UniGetUI.Cli' -AssemblyName 'UniGetUI.Cli.dll'
-
-if (-not (Test-Path $daemonDll)) {
-    throw "Daemon assembly not found at $daemonDll"
+if (-not (Test-Path $cliProject)) {
+    throw "CLI project not found at $cliProject"
 }
 
-if (-not (Test-Path $cliDll)) {
-    throw "CLI assembly not found at $cliDll"
-}
-
-$daemonDll = (Resolve-Path $daemonDll).Path
-$cliDll = (Resolve-Path $cliDll).Path
+$daemonProject = (Resolve-Path $daemonProject).Path
+$cliProject = (Resolve-Path $cliProject).Path
 
 $daemonRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("unigetui-headless-" + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $daemonRoot | Out-Null
@@ -79,7 +27,7 @@ $env:USERPROFILE = $daemonRoot
 $env:DOTNET_CLI_HOME = $daemonRoot
 
 $transportArgs = @()
-$daemonArgs = @($daemonDll, '--headless')
+$daemonArgs = @('run', '--project', $daemonProject, '--configuration', $configuration, '--no-build', '--', '--headless')
 
 if ($IsWindows) {
     $pipeName = "UniGetUI.CI.$([Guid]::NewGuid().ToString('N'))"
@@ -120,7 +68,7 @@ try {
             [string[]] $Arguments
         )
 
-        $output = & dotnet $cliDll @Arguments @transportArgs 2>&1
+        $output = & dotnet run --project $cliProject --configuration $configuration --no-build -- @Arguments @transportArgs 2>&1
         if ($LASTEXITCODE -ne 0) {
             throw "CLI command failed ($LASTEXITCODE): $($Arguments -join ' ')`n$output"
         }
