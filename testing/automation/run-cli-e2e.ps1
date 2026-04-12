@@ -11,6 +11,8 @@ $configuration = if ($env:CONFIGURATION) { $env:CONFIGURATION } else { 'Release'
 
 $daemonProject = Join-Path (Join-Path $srcRoot 'UniGetUI.Avalonia') 'UniGetUI.Avalonia.csproj'
 $cliProject = Join-Path (Join-Path $srcRoot 'UniGetUI.Cli') 'UniGetUI.Cli.csproj'
+$daemonDll = $env:UNIGETUI_DAEMON_DLL
+$cliDll = $env:UNIGETUI_CLI_DLL
 
 if (-not (Test-Path $daemonProject)) {
     throw "Daemon project not found at $daemonProject"
@@ -22,6 +24,22 @@ if (-not (Test-Path $cliProject)) {
 
 $daemonProject = (Resolve-Path $daemonProject).Path
 $cliProject = (Resolve-Path $cliProject).Path
+
+if (-not [string]::IsNullOrWhiteSpace($daemonDll)) {
+    if (-not (Test-Path $daemonDll)) {
+        throw "Daemon DLL override not found at $daemonDll"
+    }
+
+    $daemonDll = (Resolve-Path $daemonDll).Path
+}
+
+if (-not [string]::IsNullOrWhiteSpace($cliDll)) {
+    if (-not (Test-Path $cliDll)) {
+        throw "CLI DLL override not found at $cliDll"
+    }
+
+    $cliDll = (Resolve-Path $cliDll).Path
+}
 
 $daemonRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("unigetui-headless-" + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $daemonRoot | Out-Null
@@ -35,7 +53,12 @@ $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
 
 $transportArgs = @()
-$daemonArgs = @('run', '--project', $daemonProject, '--configuration', $configuration, '--no-build', '--', '--headless')
+$daemonArgs = if ([string]::IsNullOrWhiteSpace($daemonDll)) {
+    @('run', '--project', $daemonProject, '--configuration', $configuration, '--no-build', '--', '--headless')
+}
+else {
+    @($daemonDll, '--headless')
+}
 
 if ($runningOnWindows) {
     $pipeName = "UniGetUI.CI.$([Guid]::NewGuid().ToString('N'))"
@@ -87,13 +110,18 @@ try {
             [string[]] $Arguments
         )
 
-        $commandArguments = @(
-            'run',
-            '--project', $cliProject,
-            '--configuration', $configuration,
-            '--no-build',
-            '--'
-        ) + $Arguments + $transportArgs
+        $commandArguments = if ([string]::IsNullOrWhiteSpace($cliDll)) {
+            @(
+                'run',
+                '--project', $cliProject,
+                '--configuration', $configuration,
+                '--no-build',
+                '--'
+            ) + $Arguments + $transportArgs
+        }
+        else {
+            @($cliDll) + $Arguments + $transportArgs
+        }
         $output = & dotnet $commandArguments 2>&1
         if ($LASTEXITCODE -ne 0) {
             throw "CLI command failed ($LASTEXITCODE): $($Arguments -join ' ')`n$output"
@@ -436,11 +464,67 @@ try {
         throw "import-bundle did not restore dotnetsay from the exported bundle content"
     }
 
-    Write-Stage 'Package lifecycle'
-    Write-Host ' - install package directly'
-    $install = Invoke-CliJson -Arguments @('install-package', '--manager', '.NET Tool', '--package-id', 'dotnetsay', '--version', '2.1.4', '--scope', 'Global')
-    if ($install.status -ne 'success') {
-        throw "install-package failed: $($install | ConvertTo-Json -Depth 8)"
+    Write-Stage 'Live operation control'
+    Write-Host ' - install package asynchronously'
+    $install = Invoke-CliJson -Arguments @(
+        'install-package',
+        '--manager', '.NET Tool',
+        '--package-id', 'dotnetsay',
+        '--version', '2.1.4',
+        '--scope', 'Global',
+        '--wait', 'false'
+    )
+    if ($install.status -ne 'success' -or $install.completed) {
+        throw "install-package --wait false did not return an in-progress operation payload: $($install | ConvertTo-Json -Depth 8)"
+    }
+    if ([string]::IsNullOrWhiteSpace($install.operationId)) {
+        throw "install-package --wait false did not return an operation id"
+    }
+
+    $installOperationId = $install.operationId
+
+    Write-Host ' - discover the live operation'
+    $listedOperations = Wait-ForCliCondition `
+        -Arguments @('list-operations') `
+        -FailureMessage 'list-operations did not report the asynchronous install operation' `
+        -Condition {
+            param($response)
+            @($response.operations | Where-Object { $_.id -eq $installOperationId }).Count -gt 0
+        }
+
+    $listedInstallOperation = @($listedOperations.operations | Where-Object { $_.id -eq $installOperationId })[0]
+    if ($listedInstallOperation.package.id -ne 'dotnetsay') {
+        throw "list-operations did not preserve the dotnetsay package identity"
+    }
+
+    Write-Host ' - inspect operation details and output'
+    $installOperation = Invoke-CliJson -Arguments @('get-operation', '--operation-id', $installOperationId)
+    if ($installOperation.operation.id -ne $installOperationId) {
+        throw "get-operation did not return the requested operation id"
+    }
+    if ($installOperation.operation.package.id -ne 'dotnetsay') {
+        throw "get-operation did not preserve the dotnetsay package identity"
+    }
+
+    $installOutput = Invoke-CliJson -Arguments @('get-operation-output', '--operation-id', $installOperationId, '--tail', '20')
+    if ($installOutput.output.operationId -ne $installOperationId) {
+        throw "get-operation-output did not return the requested operation id"
+    }
+
+    Write-Host ' - wait for the live operation to finish'
+    $waitedInstall = Invoke-CliJson -Arguments @(
+        'wait-operation',
+        '--operation-id', $installOperationId,
+        '--timeout', '240',
+        '--delay', '1'
+    )
+    if ($waitedInstall.operation.status -ne 'succeeded') {
+        throw "wait-operation did not report a successful install: $($waitedInstall | ConvertTo-Json -Depth 8)"
+    }
+
+    $completedInstallOutput = Invoke-CliJson -Arguments @('get-operation-output', '--operation-id', $installOperationId)
+    if ($completedInstallOutput.output.lineCount -lt 1) {
+        throw "get-operation-output did not preserve any output lines for the completed install"
     }
 
     Write-Host ' - wait for installed package to appear'
@@ -452,6 +536,19 @@ try {
             @($response.packages | Where-Object { $_.id -eq 'dotnetsay' }).Count -gt 0
         }
     $installedDotnetsay = @($installed.packages | Where-Object { $_.id -eq 'dotnetsay' })
+
+    Write-Host ' - forget completed live operation'
+    $forgotInstall = Invoke-CliJson -Arguments @('forget-operation', '--operation-id', $installOperationId)
+    if ($forgotInstall.status -ne 'success') {
+        throw "forget-operation failed for the completed install: $($forgotInstall | ConvertTo-Json -Depth 8)"
+    }
+
+    $operationsAfterForget = Invoke-CliJson -Arguments @('list-operations')
+    if (@($operationsAfterForget.operations | Where-Object { $_.id -eq $installOperationId }).Count -ne 0) {
+        throw "forget-operation did not remove the completed install from list-operations"
+    }
+
+    Write-Stage 'Package lifecycle'
 
     Write-Host ' - ignore package updates'
     $ignore = Invoke-CliJson -Arguments @('ignore-package', '--manager', '.NET Tool', '--package-id', 'dotnetsay')

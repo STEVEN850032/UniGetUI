@@ -8,6 +8,7 @@ using UniGetUI.Avalonia.ViewModels;
 using UniGetUI.Core.Logging;
 using UniGetUI.Core.SettingsEngine;
 using UniGetUI.Core.Tools;
+using UniGetUI.Interface;
 using UniGetUI.PackageEngine.Classes.Packages.Classes;
 using UniGetUI.PackageEngine.Enums;
 using UniGetUI.PackageOperations;
@@ -32,6 +33,7 @@ public static class AvaloniaOperationRegistry
     /// </summary>
     public static void Add(AbstractOperation op)
     {
+        AutomationOperationApi.Track(op);
         var vm = new OperationViewModel(op);
 
         Dispatcher.UIThread.Post(() =>
@@ -88,6 +90,10 @@ public static class AvaloniaOperationRegistry
             Operations.Remove(vm.Operation);
         });
         while (AbstractOperation.OperationQueue.Remove(vm.Operation)) ;
+        if (vm.Operation.Status is not (OperationStatus.InQueue or OperationStatus.Running))
+        {
+            AutomationOperationApi.ForgetTracking(vm.Operation.Metadata.Identifier);
+        }
     }
 
     private static async Task RemoveAfterDelayAsync(AbstractOperation op, int milliseconds)
@@ -98,6 +104,10 @@ public static class AvaloniaOperationRegistry
             var vm = OperationViewModels.FirstOrDefault(v => v.Operation == op);
             if (vm is not null) OperationViewModels.Remove(vm);
             Operations.Remove(op);
+            if (op.Status is not (OperationStatus.InQueue or OperationStatus.Running))
+            {
+                AutomationOperationApi.ForgetTracking(op.Metadata.Identifier);
+            }
         });
     }
 

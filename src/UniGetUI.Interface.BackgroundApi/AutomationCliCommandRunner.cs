@@ -55,6 +55,105 @@ public static class AutomationCliCommandRunner
                     await client.NavigateAppAsync(BuildAppNavigateRequest(args))
                 ),
                 "quit-app" => await WriteJsonAsync(output, await client.QuitAppAsync()),
+                "list-operations" => await WriteJsonAsync(
+                    output,
+                    new
+                    {
+                        status = "success",
+                        operations = await client.ListOperationsAsync(),
+                    }
+                ),
+                "get-operation" => await WriteJsonAsync(
+                    output,
+                    new
+                    {
+                        status = "success",
+                        operation = await client.GetOperationAsync(
+                            GetRequiredArgument(
+                                args,
+                                "--operation-id",
+                                "The get-operation automation command requires --operation-id."
+                            )
+                        ),
+                    }
+                ),
+                "get-operation-output" => await WriteJsonAsync(
+                    output,
+                    new
+                    {
+                        status = "success",
+                        output = await client.GetOperationOutputAsync(
+                            GetRequiredArgument(
+                                args,
+                                "--operation-id",
+                                "The get-operation-output automation command requires --operation-id."
+                            ),
+                            GetOptionalIntArgument(args, "--tail")
+                        ),
+                    }
+                ),
+                "wait-operation" => await WriteJsonAsync(
+                    output,
+                    new
+                    {
+                        status = "success",
+                        operation = await client.WaitForOperationAsync(
+                            GetRequiredArgument(
+                                args,
+                                "--operation-id",
+                                "The wait-operation automation command requires --operation-id."
+                            ),
+                            GetOptionalIntArgument(args, "--timeout") ?? 300,
+                            ((GetOptionalIntArgument(args, "--delay") ?? 1) * 1000)
+                        ),
+                    }
+                ),
+                "cancel-operation" => await WriteJsonAsync(
+                    output,
+                    await client.CancelOperationAsync(
+                        GetRequiredArgument(
+                            args,
+                            "--operation-id",
+                            "The cancel-operation automation command requires --operation-id."
+                        )
+                    )
+                ),
+                "retry-operation" => await WriteJsonAsync(
+                    output,
+                    await client.RetryOperationAsync(
+                        GetRequiredArgument(
+                            args,
+                            "--operation-id",
+                            "The retry-operation automation command requires --operation-id."
+                        ),
+                        GetOptionalArgument(args, "--mode")
+                    )
+                ),
+                "reorder-operation" => await WriteJsonAsync(
+                    output,
+                    await client.ReorderOperationAsync(
+                        GetRequiredArgument(
+                            args,
+                            "--operation-id",
+                            "The reorder-operation automation command requires --operation-id."
+                        ),
+                        GetRequiredArgument(
+                            args,
+                            "--action",
+                            "The reorder-operation automation command requires --action."
+                        )
+                    )
+                ),
+                "forget-operation" => await WriteJsonAsync(
+                    output,
+                    await client.ForgetOperationAsync(
+                        GetRequiredArgument(
+                            args,
+                            "--operation-id",
+                            "The forget-operation automation command requires --operation-id."
+                        )
+                    )
+                ),
                 "list-managers" => await WriteJsonAsync(
                     output,
                     new
@@ -523,6 +622,9 @@ public static class AutomationCliCommandRunner
             Interactive = GetOptionalBoolArgument(args, "--interactive"),
             SkipHash = GetOptionalBoolArgument(args, "--skip-hash"),
             RemoveData = GetOptionalBoolArgument(args, "--remove-data"),
+            WaitForCompletion = args.Contains("--detach")
+                ? false
+                : GetOptionalBoolArgument(args, "--wait"),
             Architecture = GetOptionalArgument(args, "--architecture"),
             InstallLocation = GetOptionalArgument(args, "--location"),
             OutputPath = GetOptionalArgument(args, "--output"),

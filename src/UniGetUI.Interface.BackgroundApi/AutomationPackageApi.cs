@@ -34,6 +34,7 @@ public sealed class AutomationPackageActionRequest
     public bool? Interactive { get; set; }
     public bool? SkipHash { get; set; }
     public bool? RemoveData { get; set; }
+    public bool? WaitForCompletion { get; set; }
     public string? Architecture { get; set; }
     public string? InstallLocation { get; set; }
     public string? OutputPath { get; set; }
@@ -43,7 +44,9 @@ public sealed class AutomationPackageOperationResult
 {
     public string Status { get; set; } = "success";
     public string Command { get; set; } = "";
+    public string OperationId { get; set; } = "";
     public string OperationStatus { get; set; } = "";
+    public bool Completed { get; set; } = true;
     public string? Message { get; set; }
     public AutomationPackageInfo? Package { get; set; }
     public string? OutputPath { get; set; }
@@ -216,14 +219,30 @@ public static class AutomationPackageApi
             );
         }
 
-        using var operation = new DownloadOperation(package, request.OutputPath);
-        await operation.MainThread();
+        var operation = new DownloadOperation(package, request.OutputPath);
+        string operationId = AutomationOperationApi.Track(operation);
+
+        if (request.WaitForCompletion == false)
+        {
+            _ = Task.Run(() => RunTrackedOperationAsync(operation));
+            return CreateOperationResult(
+                "download-package",
+                package,
+                operation,
+                operation.DownloadLocation,
+                completed: false,
+                operationId: operationId
+            );
+        }
+
+        await RunTrackedOperationAsync(operation);
 
         return CreateOperationResult(
             "download-package",
             package,
             operation,
-            operation.DownloadLocation
+            operation.DownloadLocation,
+            operationId: operationId
         );
     }
 
@@ -252,15 +271,34 @@ public static class AutomationPackageApi
         var options = await InstallOptionsFactory.LoadApplicableAsync(package);
         ApplyRequestOptions(options, request);
 
-        using var uninstallOperation = new UninstallPackageOperation(package, options);
-        using var installOperation = new InstallPackageOperation(
+        var uninstallOperation = new UninstallPackageOperation(package, options);
+        var installOperation = new InstallPackageOperation(
             package,
             options,
             req: uninstallOperation
         );
-        await installOperation.MainThread();
+        string operationId = AutomationOperationApi.Track(installOperation);
 
-        return CreateOperationResult("uninstall-then-reinstall-package", package, installOperation);
+        if (request.WaitForCompletion == false)
+        {
+            _ = Task.Run(() => RunTrackedOperationAsync(installOperation));
+            return CreateOperationResult(
+                "uninstall-then-reinstall-package",
+                package,
+                installOperation,
+                completed: false,
+                operationId: operationId
+            );
+        }
+
+        await RunTrackedOperationAsync(installOperation);
+
+        return CreateOperationResult(
+            "uninstall-then-reinstall-package",
+            package,
+            installOperation,
+            operationId: operationId
+        );
     }
 
     public static async Task<AutomationPackageDetailsInfo> GetPackageDetailsAsync(
@@ -401,10 +439,36 @@ public static class AutomationPackageApi
         var options = await InstallOptionsFactory.LoadApplicableAsync(package);
         ApplyRequestOptions(options, request);
 
-        using var operation = operationFactory(package, options);
-        await operation.MainThread();
+        var operation = operationFactory(package, options);
+        string operationId = AutomationOperationApi.Track(operation);
 
-        return CreateOperationResult(command, package, operation);
+        if (request.WaitForCompletion == false)
+        {
+            _ = Task.Run(() => RunTrackedOperationAsync(operation));
+            return CreateOperationResult(
+                command,
+                package,
+                operation,
+                completed: false,
+                operationId: operationId
+            );
+        }
+
+        await RunTrackedOperationAsync(operation);
+
+        return CreateOperationResult(command, package, operation, operationId: operationId);
+    }
+
+    private static async Task RunTrackedOperationAsync(AbstractOperation operation)
+    {
+        try
+        {
+            await operation.MainThread();
+        }
+        finally
+        {
+            operation.Dispose();
+        }
     }
 
     private static void ApplyRequestOptions(
@@ -492,16 +556,21 @@ public static class AutomationPackageApi
         string command,
         IPackage package,
         AbstractOperation operation,
-        string? outputPath = null
+        string? outputPath = null,
+        bool completed = true,
+        string? operationId = null
     )
     {
         return new AutomationPackageOperationResult
         {
-            Status = operation.Status == OperationStatus.Succeeded ? "success" : "error",
+            Status = completed && operation.Status != OperationStatus.Succeeded ? "error" : "success",
             Command = command,
+            OperationId = operationId ?? operation.Metadata.Identifier,
             OperationStatus = operation.Status.ToString().ToLowerInvariant(),
+            Completed = completed,
             Message = operation.Status switch
             {
+                _ when !completed => "The operation was queued for background execution.",
                 OperationStatus.Succeeded => null,
                 OperationStatus.Canceled => "The operation was canceled.",
                 _ => operation.GetOutput().LastOrDefault().Item1,

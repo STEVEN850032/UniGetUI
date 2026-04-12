@@ -69,6 +69,156 @@ public sealed class BackgroundApiClient : IDisposable
             ?? new AutomationAppInfo();
     }
 
+    public async Task<IReadOnlyList<AutomationOperationInfo>> ListOperationsAsync()
+    {
+        return await ReadAuthenticatedJsonAsync<IReadOnlyList<AutomationOperationInfo>>(
+                HttpMethod.Get,
+                "/v3/operations"
+            )
+            ?? [];
+    }
+
+    public async Task<AutomationOperationDetails?> GetOperationAsync(string operationId)
+    {
+        return await ReadAuthenticatedJsonAsync<AutomationOperationDetails>(
+            HttpMethod.Get,
+            $"/v3/operations/{Uri.EscapeDataString(operationId)}"
+        );
+    }
+
+    public async Task<AutomationOperationOutputResult> GetOperationOutputAsync(
+        string operationId,
+        int? tailLines = null
+    )
+    {
+        Dictionary<string, string>? parameters = null;
+        if (tailLines.HasValue)
+        {
+            parameters = new Dictionary<string, string>
+            {
+                ["tailLines"] = tailLines.Value.ToString(),
+            };
+        }
+
+        return await ReadAuthenticatedJsonAsync<AutomationOperationOutputResult>(
+                HttpMethod.Get,
+                $"/v3/operations/{Uri.EscapeDataString(operationId)}/output",
+                parameters
+            )
+            ?? new AutomationOperationOutputResult
+            {
+                OperationId = operationId,
+            };
+    }
+
+    public async Task<AutomationOperationDetails> WaitForOperationAsync(
+        string operationId,
+        int timeoutSeconds = 300,
+        int delayMilliseconds = 1000
+    )
+    {
+        timeoutSeconds = Math.Clamp(timeoutSeconds, 1, 3600);
+        delayMilliseconds = Math.Clamp(delayMilliseconds, 100, 10000);
+
+        DateTime deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+        while (true)
+        {
+            var operation = await GetOperationAsync(operationId)
+                ?? throw new InvalidOperationException(
+                    $"No tracked operation with id \"{operationId}\" was found."
+                );
+
+            if (
+                operation.Status is "succeeded" or "failed" or "canceled"
+            )
+            {
+                return operation;
+            }
+
+            if (DateTime.UtcNow >= deadline)
+            {
+                throw new InvalidOperationException(
+                    $"Timed out while waiting for operation {operationId}."
+                );
+            }
+
+            await Task.Delay(delayMilliseconds);
+        }
+    }
+
+    public async Task<BackgroundApiCommandResult> CancelOperationAsync(string operationId)
+    {
+        return await ReadAuthenticatedJsonAsync<BackgroundApiCommandResult>(
+                HttpMethod.Post,
+                $"/v3/operations/{Uri.EscapeDataString(operationId)}/cancel"
+            )
+            ?? new BackgroundApiCommandResult
+            {
+                Status = "error",
+                Command = "cancel-operation",
+                Message = "The background API returned an empty response.",
+            };
+    }
+
+    public async Task<BackgroundApiCommandResult> RetryOperationAsync(
+        string operationId,
+        string? mode = null
+    )
+    {
+        Dictionary<string, string>? parameters = null;
+        if (!string.IsNullOrWhiteSpace(mode))
+        {
+            parameters = new Dictionary<string, string>
+            {
+                ["mode"] = mode,
+            };
+        }
+
+        return await ReadAuthenticatedJsonAsync<BackgroundApiCommandResult>(
+                HttpMethod.Post,
+                $"/v3/operations/{Uri.EscapeDataString(operationId)}/retry",
+                parameters
+            )
+            ?? new BackgroundApiCommandResult
+            {
+                Status = "error",
+                Command = "retry-operation",
+                Message = "The background API returned an empty response.",
+            };
+    }
+
+    public async Task<BackgroundApiCommandResult> ReorderOperationAsync(
+        string operationId,
+        string action
+    )
+    {
+        return await ReadAuthenticatedJsonAsync<BackgroundApiCommandResult>(
+                HttpMethod.Post,
+                $"/v3/operations/{Uri.EscapeDataString(operationId)}/reorder",
+                new Dictionary<string, string> { ["action"] = action }
+            )
+            ?? new BackgroundApiCommandResult
+            {
+                Status = "error",
+                Command = "reorder-operation",
+                Message = "The background API returned an empty response.",
+            };
+    }
+
+    public async Task<BackgroundApiCommandResult> ForgetOperationAsync(string operationId)
+    {
+        return await ReadAuthenticatedJsonAsync<BackgroundApiCommandResult>(
+                HttpMethod.Post,
+                $"/v3/operations/{Uri.EscapeDataString(operationId)}/forget"
+            )
+            ?? new BackgroundApiCommandResult
+            {
+                Status = "error",
+                Command = "forget-operation",
+                Message = "The background API returned an empty response.",
+            };
+    }
+
     public async Task<BackgroundApiCommandResult> ShowAppAsync()
     {
         return await ReadAuthenticatedJsonAsync<BackgroundApiCommandResult>(
@@ -1122,6 +1272,11 @@ public sealed class BackgroundApiClient : IDisposable
         if (request.RemoveData.HasValue)
         {
             parameters["removeData"] = request.RemoveData.Value ? "true" : "false";
+        }
+
+        if (request.WaitForCompletion.HasValue)
+        {
+            parameters["wait"] = request.WaitForCompletion.Value ? "true" : "false";
         }
 
         if (!string.IsNullOrWhiteSpace(request.Architecture))

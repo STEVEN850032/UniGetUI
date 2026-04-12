@@ -4,6 +4,9 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Platform;
 using Avalonia.Styling;
+#if AVALONIA_DIAGNOSTICS_ENABLED
+using Avalonia.Diagnostics;
+#endif
 using UniGetUI.Avalonia.Infrastructure;
 using UniGetUI.Avalonia.Views;
 using UniGetUI.PackageEngine;

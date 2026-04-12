@@ -76,6 +76,13 @@ namespace UniGetUI.Interface
                         endpoints.MapPost("/v3/app/show", V3_ShowApp);
                         endpoints.MapPost("/v3/app/navigate", V3_NavigateApp);
                         endpoints.MapPost("/v3/app/quit", V3_QuitApp);
+                        endpoints.MapGet("/v3/operations", V3_ListOperations);
+                        endpoints.MapGet("/v3/operations/{operationId}", V3_GetOperation);
+                        endpoints.MapGet("/v3/operations/{operationId}/output", V3_GetOperationOutput);
+                        endpoints.MapPost("/v3/operations/{operationId}/cancel", V3_CancelOperation);
+                        endpoints.MapPost("/v3/operations/{operationId}/retry", V3_RetryOperation);
+                        endpoints.MapPost("/v3/operations/{operationId}/reorder", V3_ReorderOperation);
+                        endpoints.MapPost("/v3/operations/{operationId}/forget", V3_ForgetOperation);
                         endpoints.MapGet("/v3/managers", V3_ListManagers);
                         endpoints.MapGet("/v3/managers/maintenance", V3_GetManagerMaintenance);
                         endpoints.MapPost("/v3/managers/maintenance/reload", V3_ReloadManager);
@@ -335,6 +342,70 @@ namespace UniGetUI.Interface
                     ?? throw new InvalidOperationException(
                         "The current UniGetUI session cannot be shut down through automation."
                     )
+            );
+        }
+
+        private async Task V3_ListOperations(HttpContext context)
+        {
+            await HandleReadAsync(context, () => AutomationOperationApi.ListOperations());
+        }
+
+        private async Task V3_GetOperation(HttpContext context)
+        {
+            await HandleReadAsync(
+                context,
+                () => AutomationOperationApi.GetOperation(GetRequiredRouteValue(context, "operationId"))
+            );
+        }
+
+        private async Task V3_GetOperationOutput(HttpContext context)
+        {
+            await HandleReadAsync(
+                context,
+                () => AutomationOperationApi.GetOperationOutput(
+                    GetRequiredRouteValue(context, "operationId"),
+                    int.TryParse(context.Request.Query["tailLines"], out int tailLines)
+                        ? tailLines
+                        : null
+                )
+            );
+        }
+
+        private async Task V3_CancelOperation(HttpContext context)
+        {
+            await HandleCommandAsync(
+                context,
+                () => AutomationOperationApi.CancelOperation(GetRequiredRouteValue(context, "operationId"))
+            );
+        }
+
+        private async Task V3_RetryOperation(HttpContext context)
+        {
+            await HandleCommandAsync(
+                context,
+                () => AutomationOperationApi.RetryOperation(
+                    GetRequiredRouteValue(context, "operationId"),
+                    context.Request.Query.TryGetValue("mode", out var mode) ? mode.ToString() : null
+                )
+            );
+        }
+
+        private async Task V3_ReorderOperation(HttpContext context)
+        {
+            await HandleCommandAsync(
+                context,
+                () => AutomationOperationApi.ReorderOperation(
+                    GetRequiredRouteValue(context, "operationId"),
+                    GetRequiredQueryValue(context, "action")
+                )
+            );
+        }
+
+        private async Task V3_ForgetOperation(HttpContext context)
+        {
+            await HandleCommandAsync(
+                context,
+                () => AutomationOperationApi.ForgetOperation(GetRequiredRouteValue(context, "operationId"))
             );
         }
 
@@ -1466,6 +1537,32 @@ namespace UniGetUI.Interface
             }
         }
 
+        private static async Task HandleReadAsync<T>(HttpContext context, Func<T> action)
+        {
+            if (!AuthenticateToken(context.Request.Query["token"]))
+            {
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            try
+            {
+                await context.Response.WriteAsJsonAsync(
+                    action(),
+                    new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync(ex.Message);
+            }
+        }
+
         private static async Task HandleCommandAsync(
             HttpContext context,
             Func<BackgroundApiCommandResult> action
@@ -1694,6 +1791,9 @@ namespace UniGetUI.Interface
                 RemoveData = bool.TryParse(request.Query["removeData"], out bool removeData)
                     ? removeData
                     : null,
+                WaitForCompletion = bool.TryParse(request.Query["wait"], out bool waitForCompletion)
+                    ? waitForCompletion
+                    : null,
                 Architecture = request.Query["architecture"],
                 InstallLocation = request.Query["location"],
                 OutputPath = request.Query["outputPath"],
@@ -1712,6 +1812,23 @@ namespace UniGetUI.Interface
                     ? helpAttachment.ToString()
                     : null,
             };
+        }
+
+        private static string GetRequiredRouteValue(HttpContext context, string key)
+        {
+            return context.Request.RouteValues.TryGetValue(key, out object? value)
+                && value is string stringValue
+                && !string.IsNullOrWhiteSpace(stringValue)
+                ? stringValue
+                : throw new InvalidOperationException($"The route value \"{key}\" is required.");
+        }
+
+        private static string GetRequiredQueryValue(HttpContext context, string key)
+        {
+            string value = context.Request.Query[key];
+            return !string.IsNullOrWhiteSpace(value)
+                ? value
+                : throw new InvalidOperationException($"The query value \"{key}\" is required.");
         }
 
         private async Task WIDGETS_V1_GetUpdates(HttpContext context)
