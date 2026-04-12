@@ -107,6 +107,41 @@ public static class AutomationCliCommandRunner
                         settings = await client.ListSettingsAsync(),
                     }
                 ),
+                "list-secure-settings" => await WriteJsonAsync(
+                    output,
+                    new
+                    {
+                        status = "success",
+                        settings = await client.ListSecureSettingsAsync(
+                            GetOptionalArgument(args, "--user")
+                        ),
+                    }
+                ),
+                "get-secure-setting" => await WriteJsonAsync(
+                    output,
+                    new
+                    {
+                        status = "success",
+                        setting = await client.GetSecureSettingAsync(
+                            GetRequiredArgument(
+                                args,
+                                "--key",
+                                "The get-secure-setting automation command requires --key."
+                            ),
+                            GetOptionalArgument(args, "--user")
+                        ),
+                    }
+                ),
+                "set-secure-setting" => await WriteJsonAsync(
+                    output,
+                    new
+                    {
+                        status = "success",
+                        setting = await client.SetSecureSettingAsync(
+                            BuildSecureSettingRequest(args)
+                        ),
+                    }
+                ),
                 "get-setting" => await WriteJsonAsync(
                     output,
                     new
@@ -140,6 +175,24 @@ public static class AutomationCliCommandRunner
                                 "--key",
                                 "The clear-setting automation command requires --key."
                             )
+                        ),
+                    }
+                ),
+                "set-manager-enabled" => await WriteJsonAsync(
+                    output,
+                    new
+                    {
+                        status = "success",
+                        manager = await client.SetManagerEnabledAsync(BuildManagerToggleRequest(args)),
+                    }
+                ),
+                "set-manager-update-notifications" => await WriteJsonAsync(
+                    output,
+                    new
+                    {
+                        status = "success",
+                        manager = await client.SetManagerUpdateNotificationsAsync(
+                            BuildManagerToggleRequest(args)
                         ),
                     }
                 ),
@@ -484,6 +537,31 @@ public static class AutomationCliCommandRunner
         };
     }
 
+    private static AutomationSecureSettingRequest BuildSecureSettingRequest(
+        IReadOnlyList<string> args
+    )
+    {
+        return new AutomationSecureSettingRequest
+        {
+            SettingKey = GetRequiredArgument(args, "--key", "This automation command requires --key."),
+            UserName = GetOptionalArgument(args, "--user"),
+            Enabled = GetRequiredBoolArgument(args, "--enabled"),
+        };
+    }
+
+    private static AutomationManagerToggleRequest BuildManagerToggleRequest(IReadOnlyList<string> args)
+    {
+        return new AutomationManagerToggleRequest
+        {
+            ManagerName = GetRequiredArgument(
+                args,
+                "--manager",
+                "This automation command requires --manager."
+            ),
+            Enabled = GetRequiredBoolArgument(args, "--enabled"),
+        };
+    }
+
     private static AutomationDesktopShortcutRequest BuildDesktopShortcutRequest(
         IReadOnlyList<string> args,
         bool requireStatus
@@ -675,6 +753,19 @@ public static class AutomationCliCommandRunner
         throw new InvalidOperationException(
             $"The value supplied to {argumentName} must be either true or false."
         );
+    }
+
+    private static bool GetRequiredBoolArgument(IReadOnlyList<string> arguments, string argumentName)
+    {
+        bool? value = GetOptionalBoolArgument(arguments, argumentName);
+        if (!value.HasValue)
+        {
+            throw new InvalidOperationException(
+                $"This automation command requires {argumentName} with a value of true or false."
+            );
+        }
+
+        return value.Value;
     }
 
     private static async Task<int> WriteJsonAsync<T>(TextWriter output, T value)

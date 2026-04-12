@@ -48,32 +48,42 @@ public static class SecureSettings
 
     public static bool Get(K key)
     {
-        string purifiedSetting = CoreTools.MakeValidFileName(ResolveKey(key));
-        if (_cache.TryGetValue(purifiedSetting, out var value))
+        return GetForUser(Environment.UserName, key);
+    }
+
+    public static bool GetForUser(string username, K key)
+    {
+        return GetForUser(username, ResolveKey(key));
+    }
+
+    public static bool GetForUser(string username, string setting)
+    {
+        string purifiedSetting = CoreTools.MakeValidFileName(setting);
+        string purifiedUser = CoreTools.MakeValidFileName(username);
+        string cacheKey = $"{purifiedUser}|{purifiedSetting}";
+        if (_cache.TryGetValue(cacheKey, out var value))
         {
             return value;
         }
-
-        string purifiedUser = CoreTools.MakeValidFileName(Environment.UserName);
 
         var settingsLocation = Path.Join(GetSecureSettingsRoot(), purifiedUser);
         var settingFile = Path.Join(settingsLocation, purifiedSetting);
 
         if (!Directory.Exists(settingsLocation))
         {
-            _cache[purifiedSetting] = false;
+            _cache[cacheKey] = false;
             return false;
         }
 
         bool exists = File.Exists(settingFile);
-        _cache[purifiedSetting] = exists;
+        _cache[cacheKey] = exists;
         return exists;
     }
 
     public static async Task<bool> TrySet(K key, bool enabled)
     {
         string purifiedSetting = CoreTools.MakeValidFileName(ResolveKey(key));
-        _cache.Remove(purifiedSetting);
+        _cache.Remove($"{CoreTools.MakeValidFileName(Environment.UserName)}|{purifiedSetting}");
 
         string purifiedUser = CoreTools.MakeValidFileName(Environment.UserName);
 
@@ -107,9 +117,8 @@ public static class SecureSettings
         try
         {
             string purifiedSetting = CoreTools.MakeValidFileName(setting);
-            _cache.Remove(purifiedSetting);
-
             string purifiedUser = CoreTools.MakeValidFileName(username);
+            _cache.Remove($"{purifiedUser}|{purifiedSetting}");
 
             var settingsLocation = Path.Join(GetSecureSettingsRoot(), purifiedUser);
             var settingFile = Path.Join(settingsLocation, purifiedSetting);

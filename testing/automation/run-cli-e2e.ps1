@@ -163,12 +163,35 @@ try {
         throw "list-settings did not report FreshValue"
     }
 
+    $secureSettings = Invoke-CliJson -Arguments @('list-secure-settings')
+    if (@($secureSettings.settings | Where-Object { $_.key -eq 'AllowCLIArguments' }).Count -eq 0) {
+        throw "list-secure-settings did not report AllowCLIArguments"
+    }
+
     $managerMaintenance = Invoke-CliJson -Arguments @('get-manager-maintenance', '--manager', '.NET Tool')
     if ($managerMaintenance.maintenance.manager -ne '.NET Tool') {
         throw "get-manager-maintenance did not return the .NET Tool manager payload"
     }
     if (@($managerMaintenance.maintenance.supportedActions | Where-Object { $_ -eq 'reload' }).Count -eq 0) {
         throw "get-manager-maintenance did not expose the reload action"
+    }
+
+    $disableManagerNotifs = Invoke-CliJson -Arguments @(
+        'set-manager-update-notifications',
+        '--manager', '.NET Tool',
+        '--enabled', 'false'
+    )
+    if (-not $disableManagerNotifs.manager.notificationsSuppressed) {
+        throw "set-manager-update-notifications did not suppress notifications for .NET Tool"
+    }
+
+    $enableManagerNotifs = Invoke-CliJson -Arguments @(
+        'set-manager-update-notifications',
+        '--manager', '.NET Tool',
+        '--enabled', 'true'
+    )
+    if ($enableManagerNotifs.manager.notificationsSuppressed) {
+        throw "set-manager-update-notifications did not re-enable notifications for .NET Tool"
     }
 
     $reloadManager = Invoke-CliJson -Arguments @('reload-manager', '--manager', '.NET Tool')

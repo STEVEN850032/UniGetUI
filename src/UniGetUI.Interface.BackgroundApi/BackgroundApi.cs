@@ -88,6 +88,14 @@ namespace UniGetUI.Interface
                         endpoints.MapPost("/v3/settings/set", V3_SetSetting);
                         endpoints.MapPost("/v3/settings/clear", V3_ClearSetting);
                         endpoints.MapPost("/v3/settings/reset", V3_ResetSettings);
+                        endpoints.MapGet("/v3/secure-settings", V3_ListSecureSettings);
+                        endpoints.MapGet("/v3/secure-settings/item", V3_GetSecureSetting);
+                        endpoints.MapPost("/v3/secure-settings/set", V3_SetSecureSetting);
+                        endpoints.MapPost("/v3/managers/set-enabled", V3_SetManagerEnabled);
+                        endpoints.MapPost(
+                            "/v3/managers/set-update-notifications",
+                            V3_SetManagerUpdateNotifications
+                        );
                         endpoints.MapGet("/v3/desktop-shortcuts", V3_ListDesktopShortcuts);
                         endpoints.MapPost("/v3/desktop-shortcuts/set", V3_SetDesktopShortcut);
                         endpoints.MapPost("/v3/desktop-shortcuts/reset", V3_ResetDesktopShortcut);
@@ -493,6 +501,173 @@ namespace UniGetUI.Interface
                     WriteIndented = true,
                 }
             );
+        }
+
+        private async Task V3_ListSecureSettings(HttpContext context)
+        {
+            if (!AuthenticateToken(context.Request.Query["token"]))
+            {
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            await context.Response.WriteAsJsonAsync(
+                AutomationSecureSettingsApi.ListSettings(context.Request.Query["user"]),
+                new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true,
+                }
+            );
+        }
+
+        private async Task V3_GetSecureSetting(HttpContext context)
+        {
+            if (!AuthenticateToken(context.Request.Query["token"]))
+            {
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            try
+            {
+                await context.Response.WriteAsJsonAsync(
+                    AutomationSecureSettingsApi.GetSetting(
+                        context.Request.Query["key"],
+                        context.Request.Query["user"]
+                    ),
+                    new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync(ex.Message);
+            }
+        }
+
+        private async Task V3_SetSecureSetting(HttpContext context)
+        {
+            if (!AuthenticateToken(context.Request.Query["token"]))
+            {
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            if (!bool.TryParse(context.Request.Query["enabled"], out bool enabled))
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync("The enabled parameter must be either true or false.");
+                return;
+            }
+
+            try
+            {
+                await context.Response.WriteAsJsonAsync(
+                    await AutomationSecureSettingsApi.SetSettingAsync(
+                        new AutomationSecureSettingRequest
+                        {
+                            SettingKey = context.Request.Query["key"],
+                            UserName = context.Request.Query.TryGetValue("user", out var user)
+                                ? user.ToString()
+                                : null,
+                            Enabled = enabled,
+                        }
+                    ),
+                    new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync(ex.Message);
+            }
+        }
+
+        private async Task V3_SetManagerEnabled(HttpContext context)
+        {
+            if (!AuthenticateToken(context.Request.Query["token"]))
+            {
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            if (!bool.TryParse(context.Request.Query["enabled"], out bool enabled))
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync("The enabled parameter must be either true or false.");
+                return;
+            }
+
+            try
+            {
+                await context.Response.WriteAsJsonAsync(
+                    await AutomationManagerSettingsApi.SetManagerEnabledAsync(
+                        new AutomationManagerToggleRequest
+                        {
+                            ManagerName = context.Request.Query["manager"],
+                            Enabled = enabled,
+                        }
+                    ),
+                    new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync(ex.Message);
+            }
+        }
+
+        private async Task V3_SetManagerUpdateNotifications(HttpContext context)
+        {
+            if (!AuthenticateToken(context.Request.Query["token"]))
+            {
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            if (!bool.TryParse(context.Request.Query["enabled"], out bool enabled))
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync("The enabled parameter must be either true or false.");
+                return;
+            }
+
+            try
+            {
+                await context.Response.WriteAsJsonAsync(
+                    AutomationManagerSettingsApi.SetManagerNotifications(
+                        new AutomationManagerToggleRequest
+                        {
+                            ManagerName = context.Request.Query["manager"],
+                            Enabled = enabled,
+                        }
+                    ),
+                    new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync(ex.Message);
+            }
         }
 
         private async Task V3_ListDesktopShortcuts(HttpContext context)

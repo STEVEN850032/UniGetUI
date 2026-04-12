@@ -149,6 +149,62 @@ public sealed class BackgroundApiClient : IDisposable
         ) ?? [];
     }
 
+    public async Task<IReadOnlyList<AutomationSecureSettingInfo>> ListSecureSettingsAsync(
+        string? userName = null
+    )
+    {
+        Dictionary<string, string>? parameters = null;
+        if (!string.IsNullOrWhiteSpace(userName))
+        {
+            parameters = new Dictionary<string, string> { ["user"] = userName };
+        }
+
+        return await ReadAuthenticatedJsonAsync<IReadOnlyList<AutomationSecureSettingInfo>>(
+            HttpMethod.Get,
+            "/v3/secure-settings",
+            parameters
+        ) ?? [];
+    }
+
+    public async Task<AutomationSecureSettingInfo?> GetSecureSettingAsync(
+        string key,
+        string? userName = null
+    )
+    {
+        Dictionary<string, string> parameters = new() { ["key"] = key };
+        if (!string.IsNullOrWhiteSpace(userName))
+        {
+            parameters["user"] = userName;
+        }
+
+        return await ReadAuthenticatedJsonAsync<AutomationSecureSettingInfo>(
+            HttpMethod.Get,
+            "/v3/secure-settings/item",
+            parameters
+        );
+    }
+
+    public async Task<AutomationSecureSettingInfo?> SetSecureSettingAsync(
+        AutomationSecureSettingRequest request
+    )
+    {
+        Dictionary<string, string> parameters = new()
+        {
+            ["key"] = request.SettingKey,
+            ["enabled"] = request.Enabled ? "true" : "false",
+        };
+        if (!string.IsNullOrWhiteSpace(request.UserName))
+        {
+            parameters["user"] = request.UserName;
+        }
+
+        return await ReadAuthenticatedJsonAsync<AutomationSecureSettingInfo>(
+            HttpMethod.Post,
+            "/v3/secure-settings/set",
+            parameters
+        );
+    }
+
     public async Task<AutomationSettingInfo?> GetSettingAsync(string key)
     {
         return await ReadAuthenticatedJsonAsync<AutomationSettingInfo>(
@@ -184,6 +240,36 @@ public sealed class BackgroundApiClient : IDisposable
             HttpMethod.Post,
             "/v3/settings/clear",
             new Dictionary<string, string> { ["key"] = key }
+        );
+    }
+
+    public async Task<AutomationManagerInfo?> SetManagerEnabledAsync(
+        AutomationManagerToggleRequest request
+    )
+    {
+        return await ReadAuthenticatedJsonAsync<AutomationManagerInfo>(
+            HttpMethod.Post,
+            "/v3/managers/set-enabled",
+            new Dictionary<string, string>
+            {
+                ["manager"] = request.ManagerName,
+                ["enabled"] = request.Enabled ? "true" : "false",
+            }
+        );
+    }
+
+    public async Task<AutomationManagerInfo?> SetManagerUpdateNotificationsAsync(
+        AutomationManagerToggleRequest request
+    )
+    {
+        return await ReadAuthenticatedJsonAsync<AutomationManagerInfo>(
+            HttpMethod.Post,
+            "/v3/managers/set-update-notifications",
+            new Dictionary<string, string>
+            {
+                ["manager"] = request.ManagerName,
+                ["enabled"] = request.Enabled ? "true" : "false",
+            }
         );
     }
 
@@ -1038,6 +1124,7 @@ public sealed class BackgroundApiClient : IDisposable
         if (
             relativePath.StartsWith("/v3/managers", StringComparison.OrdinalIgnoreCase)
             || relativePath.StartsWith("/v3/settings", StringComparison.OrdinalIgnoreCase)
+            || relativePath.StartsWith("/v3/secure-settings", StringComparison.OrdinalIgnoreCase)
             || relativePath.StartsWith("/v3/desktop-shortcuts", StringComparison.OrdinalIgnoreCase)
             || relativePath.StartsWith("/v3/logs/", StringComparison.OrdinalIgnoreCase)
         )

@@ -21,6 +21,7 @@ public sealed class AutomationManagerMaintenanceInfo
     public bool? UseBundledWinGet { get; set; }
     public bool? UseSystemChocolatey { get; set; }
     public bool? ScoopCleanupOnLaunch { get; set; }
+    public bool UpdateNotificationsSuppressed { get; set; }
     public string? DefaultVcpkgTriplet { get; set; }
     public IReadOnlyList<string> AvailableVcpkgTriplets { get; set; } = [];
     public string? CustomVcpkgRoot { get; set; }
@@ -281,6 +282,10 @@ public static class AutomationManagerMaintenanceApi
             ScoopCleanupOnLaunch = manager.Name.Equals("Scoop", StringComparison.OrdinalIgnoreCase)
                 ? Settings.Get(Settings.K.EnableScoopCleanup)
                 : null,
+            UpdateNotificationsSuppressed = Settings.GetDictionaryItem<string, bool>(
+                Settings.K.DisabledPackageManagerNotifications,
+                manager.Name
+            ),
             DefaultVcpkgTriplet = manager.Name.Equals("vcpkg", StringComparison.OrdinalIgnoreCase)
                 ? Settings.GetValue(Settings.K.DefaultVcpkgTriplet)
                 : null,

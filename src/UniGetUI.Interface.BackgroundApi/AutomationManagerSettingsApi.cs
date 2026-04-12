@@ -30,6 +30,7 @@ public sealed class AutomationManagerInfo
     public string DisplayName { get; set; } = "";
     public bool Enabled { get; set; }
     public bool Ready { get; set; }
+    public bool NotificationsSuppressed { get; set; }
     public string ExecutablePath { get; set; } = "";
     public string ExecutableArguments { get; set; } = "";
     public AutomationManagerCapabilitiesInfo Capabilities { get; set; } = new();
@@ -78,6 +79,12 @@ public sealed class AutomationSettingValueRequest
     public string SettingKey { get; set; } = "";
     public bool? Enabled { get; set; }
     public string? Value { get; set; }
+}
+
+public sealed class AutomationManagerToggleRequest
+{
+    public string ManagerName { get; set; } = "";
+    public bool Enabled { get; set; }
 }
 
 public static class AutomationManagerSettingsApi
@@ -190,6 +197,31 @@ public static class AutomationManagerSettingsApi
         }
     }
 
+    public static async Task<AutomationManagerInfo> SetManagerEnabledAsync(
+        AutomationManagerToggleRequest request
+    )
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var manager = ResolveManager(request.ManagerName);
+        Settings.SetDictionaryItem(Settings.K.DisabledManagers, manager.Name, !request.Enabled);
+        await Task.Run(manager.Initialize);
+        return ToManagerInfo(manager);
+    }
+
+    public static AutomationManagerInfo SetManagerNotifications(
+        AutomationManagerToggleRequest request
+    )
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var manager = ResolveManager(request.ManagerName);
+        Settings.SetDictionaryItem(
+            Settings.K.DisabledPackageManagerNotifications,
+            manager.Name,
+            !request.Enabled
+        );
+        return ToManagerInfo(manager);
+    }
+
     private static AutomationManagerInfo ToManagerInfo(IPackageManager manager)
     {
         return new AutomationManagerInfo
@@ -198,6 +230,10 @@ public static class AutomationManagerSettingsApi
             DisplayName = manager.DisplayName,
             Enabled = manager.IsEnabled(),
             Ready = manager.IsReady(),
+            NotificationsSuppressed = Settings.GetDictionaryItem<string, bool>(
+                Settings.K.DisabledPackageManagerNotifications,
+                manager.Name
+            ),
             ExecutablePath = manager.Status.ExecutablePath,
             ExecutableArguments = manager.Status.ExecutableCallArgs,
             Capabilities = new AutomationManagerCapabilitiesInfo
