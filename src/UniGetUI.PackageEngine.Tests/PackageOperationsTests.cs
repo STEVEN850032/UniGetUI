@@ -294,6 +294,44 @@ public sealed class PackageOperationsTests
         );
     }
 
+    [Fact]
+    public async Task UpdateOperationSuccessfulRunPrefersRequestedVersionWhenSnapshotLags()
+    {
+        TestPackageManager? manager = null;
+        Package? installedPackage = null;
+        manager = new PackageManagerBuilder()
+            .WithInstalledPackages(_ => [Assert.IsType<Package>(installedPackage)])
+            .Build();
+        var installedBeforeUpdate = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("dotnetsay")
+            .WithVersion("2.1.4")
+            .Build();
+        installedPackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("dotnetsay")
+            .WithVersion("2.1.4")
+            .Build();
+        InitializeLoaders();
+        await InstalledPackagesLoader.Instance.AddForeign(installedBeforeUpdate);
+        using var operation = new SimulatedUpdatePackageOperation(
+            installedBeforeUpdate,
+            new InstallOptions { Version = "3.0.3" },
+            OperationVeredict.Success
+        );
+
+        await operation.MainThread();
+        await WaitForAsync(() =>
+            InstalledPackagesLoader.Instance.GetEquivalentPackages(installedBeforeUpdate)
+                .Any(package => package.VersionString == "3.0.3")
+        );
+
+        Assert.DoesNotContain(
+            InstalledPackagesLoader.Instance.GetEquivalentPackages(installedBeforeUpdate),
+            package => package.VersionString == "2.1.4"
+        );
+    }
+
     private static IReadOnlyList<AbstractOperation.InnerOperation> GetInnerOperations(
         AbstractOperation operation,
         string fieldName

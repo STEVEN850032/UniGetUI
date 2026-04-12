@@ -166,7 +166,10 @@ namespace UniGetUI.PackageEngine.Operations
 #endif
         }
 
-        protected async Task<IPackage> ResolveInstalledPackageSnapshotAsync(string fallbackVersion)
+        protected async Task<IPackage> ResolveInstalledPackageSnapshotAsync(
+            string fallbackVersion,
+            bool preferFallbackVersionWhenMissing = false
+        )
         {
             try
             {
@@ -191,6 +194,11 @@ namespace UniGetUI.PackageEngine.Operations
                         {
                             return exactMatch;
                         }
+
+                        if (preferFallbackVersionWhenMissing)
+                        {
+                            return CreateSyntheticInstalledPackage(fallbackVersion);
+                        }
                     }
 
                     return installedMatches
@@ -206,10 +214,15 @@ namespace UniGetUI.PackageEngine.Operations
                 Logger.Warn(ex);
             }
 
+            return CreateSyntheticInstalledPackage(fallbackVersion);
+        }
+
+        private IPackage CreateSyntheticInstalledPackage(string version)
+        {
             return new Package(
                 Package.Name,
                 Package.Id,
-                fallbackVersion,
+                version,
                 Package.Source,
                 Package.Manager,
                 Package.OverridenOptions
@@ -312,8 +325,10 @@ namespace UniGetUI.PackageEngine.Operations
         protected override async Task HandleSuccess()
         {
             Package.SetTag(PackageTag.AlreadyInstalled);
+            bool explicitVersionRequested = !string.IsNullOrWhiteSpace(Options.Version);
             var installedPackage = await ResolveInstalledPackageSnapshotAsync(
-                string.IsNullOrWhiteSpace(Options.Version) ? Package.VersionString : Options.Version
+                explicitVersionRequested ? Options.Version : Package.VersionString,
+                preferFallbackVersionWhenMissing: explicitVersionRequested
             );
             await InstalledPackagesLoader.Instance.AddForeign(installedPackage);
 
@@ -388,10 +403,14 @@ namespace UniGetUI.PackageEngine.Operations
             UpgradablePackagesLoader.Instance.Remove(Package);
             InstalledPackagesLoader.Instance.Remove(Package);
 
+            bool explicitVersionRequested = !string.IsNullOrWhiteSpace(Options.Version);
             var installedPackage = await ResolveInstalledPackageSnapshotAsync(
-                string.IsNullOrWhiteSpace(Package.NewVersionString)
-                    ? Package.VersionString
-                    : Package.NewVersionString
+                explicitVersionRequested
+                    ? Options.Version
+                    : string.IsNullOrWhiteSpace(Package.NewVersionString)
+                        ? Package.VersionString
+                        : Package.NewVersionString,
+                preferFallbackVersionWhenMissing: explicitVersionRequested
             );
             await InstalledPackagesLoader.Instance.AddForeign(installedPackage);
 
