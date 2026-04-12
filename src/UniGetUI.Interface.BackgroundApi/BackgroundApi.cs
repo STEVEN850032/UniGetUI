@@ -69,6 +69,17 @@ namespace UniGetUI.Interface
                     {
                         endpoints.MapGet("/v3/status", V3_Status);
                         endpoints.MapGet("/v3/managers", V3_ListManagers);
+                        endpoints.MapGet("/v3/managers/maintenance", V3_GetManagerMaintenance);
+                        endpoints.MapPost("/v3/managers/maintenance/reload", V3_ReloadManager);
+                        endpoints.MapPost(
+                            "/v3/managers/maintenance/executable/set",
+                            V3_SetManagerExecutable
+                        );
+                        endpoints.MapPost(
+                            "/v3/managers/maintenance/executable/clear",
+                            V3_ClearManagerExecutable
+                        );
+                        endpoints.MapPost("/v3/managers/maintenance/action", V3_RunManagerAction);
                         endpoints.MapGet("/v3/sources", V3_ListSources);
                         endpoints.MapPost("/v3/sources/add", V3_AddSource);
                         endpoints.MapPost("/v3/sources/remove", V3_RemoveSource);
@@ -264,6 +275,72 @@ namespace UniGetUI.Interface
                 context.Response.StatusCode = 400;
                 await context.Response.WriteAsync(ex.Message);
             }
+        }
+
+        private async Task V3_GetManagerMaintenance(HttpContext context)
+        {
+            if (!AuthenticateToken(context.Request.Query["token"]))
+            {
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            string managerName = context.Request.Query["manager"].ToString();
+            if (string.IsNullOrWhiteSpace(managerName))
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync("The manager parameter is required.");
+                return;
+            }
+
+            try
+            {
+                await context.Response.WriteAsJsonAsync(
+                    AutomationManagerMaintenanceApi.GetMaintenanceInfo(managerName),
+                    new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync(ex.Message);
+            }
+        }
+
+        private async Task V3_ReloadManager(HttpContext context)
+        {
+            await HandleManagerMaintenanceActionAsync<
+                AutomationManagerMaintenanceRequest,
+                AutomationManagerMaintenanceActionResult
+            >(context, AutomationManagerMaintenanceApi.ReloadManagerAsync);
+        }
+
+        private async Task V3_SetManagerExecutable(HttpContext context)
+        {
+            await HandleManagerMaintenanceActionAsync<
+                AutomationManagerMaintenanceRequest,
+                AutomationManagerMaintenanceActionResult
+            >(context, AutomationManagerMaintenanceApi.SetExecutablePathAsync);
+        }
+
+        private async Task V3_ClearManagerExecutable(HttpContext context)
+        {
+            await HandleManagerMaintenanceActionAsync<
+                AutomationManagerMaintenanceRequest,
+                AutomationManagerMaintenanceActionResult
+            >(context, AutomationManagerMaintenanceApi.ClearExecutablePathAsync);
+        }
+
+        private async Task V3_RunManagerAction(HttpContext context)
+        {
+            await HandleManagerMaintenanceActionAsync<
+                AutomationManagerMaintenanceRequest,
+                AutomationManagerMaintenanceActionResult
+            >(context, AutomationManagerMaintenanceApi.RunActionAsync);
         }
 
         private async Task V3_AddSource(HttpContext context)
@@ -1216,6 +1293,35 @@ namespace UniGetUI.Interface
         }
 
         private static async Task HandleBackupActionAsync<TRequest, TResult>(
+            HttpContext context,
+            Func<TRequest, Task<TResult>> action
+        )
+        {
+            if (!AuthenticateToken(context.Request.Query["token"]))
+            {
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            try
+            {
+                await context.Response.WriteAsJsonAsync(
+                    await action(await ReadJsonBodyAsync<TRequest>(context)),
+                    new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync(ex.Message);
+            }
+        }
+
+        private static async Task HandleManagerMaintenanceActionAsync<TRequest, TResult>(
             HttpContext context,
             Func<TRequest, Task<TResult>> action
         )

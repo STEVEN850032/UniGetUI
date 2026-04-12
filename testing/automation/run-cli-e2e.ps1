@@ -163,6 +163,19 @@ try {
         throw "list-settings did not report FreshValue"
     }
 
+    $managerMaintenance = Invoke-CliJson -Arguments @('get-manager-maintenance', '--manager', '.NET Tool')
+    if ($managerMaintenance.maintenance.manager -ne '.NET Tool') {
+        throw "get-manager-maintenance did not return the .NET Tool manager payload"
+    }
+    if (@($managerMaintenance.maintenance.supportedActions | Where-Object { $_ -eq 'reload' }).Count -eq 0) {
+        throw "get-manager-maintenance did not expose the reload action"
+    }
+
+    $reloadManager = Invoke-CliJson -Arguments @('reload-manager', '--manager', '.NET Tool')
+    if ($reloadManager.operationStatus -ne 'completed') {
+        throw "reload-manager did not complete successfully"
+    }
+
     $syntheticShortcut = Join-Path $daemonRoot 'SyntheticShortcut.lnk'
     New-Item -ItemType File -Path $syntheticShortcut | Out-Null
 

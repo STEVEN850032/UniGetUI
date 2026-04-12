@@ -22,6 +22,11 @@
 | `--automation get-version` | Reads the local automation service build number through the background API | 2026.1+ |
 | `--automation get-updates` | Reads the currently available updates through the local automation service and returns structured JSON | 2026.1+ |
 | `--automation list-managers` | Lists package managers, readiness, executable metadata, and automation-relevant capability flags | 2026.1+ |
+| `--automation get-manager-maintenance --manager name` | Returns manager-specific maintenance metadata, supported maintenance actions, executable-path candidates, and convenience state for manager-only settings such as bundled/system toggles and vcpkg triplets | 2026.1+ |
+| `--automation reload-manager --manager name` | Re-initializes one manager and returns the refreshed maintenance payload | 2026.1+ |
+| `--automation set-manager-executable --manager name --path path` | Sets a custom executable override for one manager when secure settings allow custom manager paths, then reloads that manager | 2026.1+ |
+| `--automation clear-manager-executable --manager name` | Clears a custom executable override for one manager and reloads that manager | 2026.1+ |
+| `--automation run-manager-action --manager name --action action [--confirm]` | Runs an explicit manager-maintenance action. Current actions are `repair-winget`, `install-scoop`, `uninstall-scoop`, and `cleanup-scoop`; system-changing actions require `--confirm` | 2026.1+ |
 | `--automation list-sources [--manager name]` | Lists known and configured sources, optionally filtered to a single manager | 2026.1+ |
 | `--automation add-source --manager name --source-name name [--source-url url]` | Adds a known or custom source through the automation service | 2026.1+ |
 | `--automation remove-source --manager name --source-name name [--source-url url]` | Removes a source through the automation service | 2026.1+ |
@@ -85,7 +90,7 @@
 
 - `dotnet src\UniGetUI.Avalonia\bin\Release\net10.0\UniGetUI.Avalonia.dll --headless` starts the local automation daemon without opening any window or requiring a graphical desktop session.
 - `dotnet src\UniGetUI.Cli\bin\Release\net10.0\UniGetUI.Cli.dll <command>` is the cross-platform CLI wrapper for the automation service. It automatically prepends `--automation`, so `UniGetUI.Cli status` and `UniGetUI.Cli search-packages --manager ".NET Tool" --query dotnetsay` work directly.
-- Current agent-oriented command coverage includes status/version, manager/source inspection, settings inspection and mutation, desktop-shortcut state management, app/history/manager log inspection, local backup creation and GitHub cloud-backup/auth flows, current bundle inspection/import/export/add/remove/install flows, package search/details/version listing, ignored-update management, and package install/update/uninstall flows.
+- Current agent-oriented command coverage includes status/version, manager/source inspection plus manager-maintenance and executable-path control, settings inspection and mutation, desktop-shortcut state management, app/history/manager log inspection, local backup creation and GitHub cloud-backup/auth flows, current bundle inspection/import/export/add/remove/install flows, package search/details/version listing, ignored-update management, and package install/update/uninstall flows.
 
 <br><br>
 # `unigetui://` deep link

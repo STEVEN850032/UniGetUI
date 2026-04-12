@@ -71,6 +71,51 @@ public sealed class BackgroundApiClient : IDisposable
         ) ?? [];
     }
 
+    public async Task<AutomationManagerMaintenanceInfo?> GetManagerMaintenanceAsync(
+        string managerName
+    )
+    {
+        return await ReadAuthenticatedJsonAsync<AutomationManagerMaintenanceInfo>(
+            HttpMethod.Get,
+            "/v3/managers/maintenance",
+            new Dictionary<string, string> { ["manager"] = managerName }
+        );
+    }
+
+    public async Task<AutomationManagerMaintenanceActionResult> ReloadManagerAsync(
+        AutomationManagerMaintenanceRequest request
+    )
+    {
+        return await SendManagerMaintenanceActionAsync("/v3/managers/maintenance/reload", request);
+    }
+
+    public async Task<AutomationManagerMaintenanceActionResult> SetManagerExecutablePathAsync(
+        AutomationManagerMaintenanceRequest request
+    )
+    {
+        return await SendManagerMaintenanceActionAsync(
+            "/v3/managers/maintenance/executable/set",
+            request
+        );
+    }
+
+    public async Task<AutomationManagerMaintenanceActionResult> ClearManagerExecutablePathAsync(
+        AutomationManagerMaintenanceRequest request
+    )
+    {
+        return await SendManagerMaintenanceActionAsync(
+            "/v3/managers/maintenance/executable/clear",
+            request
+        );
+    }
+
+    public async Task<AutomationManagerMaintenanceActionResult> RunManagerActionAsync(
+        AutomationManagerMaintenanceRequest request
+    )
+    {
+        return await SendManagerMaintenanceActionAsync("/v3/managers/maintenance/action", request);
+    }
+
     public async Task<IReadOnlyList<AutomationSourceInfo>> ListSourcesAsync(string? managerName = null)
     {
         Dictionary<string, string>? parameters = null;
@@ -831,6 +876,22 @@ public sealed class BackgroundApiClient : IDisposable
             };
     }
 
+    private async Task<AutomationManagerMaintenanceActionResult> SendManagerMaintenanceActionAsync(
+        string relativePath,
+        AutomationManagerMaintenanceRequest request
+    )
+    {
+        return await ReadAuthenticatedJsonWithBodyAsync<
+                AutomationManagerMaintenanceActionResult,
+                AutomationManagerMaintenanceRequest
+            >(relativePath, request)
+            ?? new AutomationManagerMaintenanceActionResult
+            {
+                Status = "error",
+                Message = "The background API returned an empty response.",
+            };
+    }
+
     private async Task<BackgroundApiCommandResult> SendCommandAsync(
         string relativePath,
         IReadOnlyDictionary<string, string>? queryParameters = null
@@ -933,6 +994,13 @@ public sealed class BackgroundApiClient : IDisposable
         if (relativePath.StartsWith("/v3/bundles/install", StringComparison.OrdinalIgnoreCase))
         {
             return TimeSpan.FromMinutes(5);
+        }
+
+        if (
+            relativePath.StartsWith("/v3/managers/maintenance/action", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            return TimeSpan.FromMinutes(10);
         }
 
         if (

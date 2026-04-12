@@ -299,7 +299,7 @@ public static class AutomationManagerSettingsApi
         };
     }
 
-    private static IReadOnlyList<IPackageManager> ResolveManagers(string? managerName)
+    internal static IReadOnlyList<IPackageManager> ResolveManagers(string? managerName)
     {
         var managers = PEInterface.Managers
             .Where(manager =>
@@ -321,7 +321,7 @@ public static class AutomationManagerSettingsApi
         return managers;
     }
 
-    private static IPackageManager ResolveManager(string managerName)
+    internal static IPackageManager ResolveManager(string managerName)
     {
         if (string.IsNullOrWhiteSpace(managerName))
         {

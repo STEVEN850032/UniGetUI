@@ -49,6 +49,40 @@ public static class AutomationCliCommandRunner
                         managers = await client.ListManagersAsync(),
                     }
                 ),
+                "get-manager-maintenance" => await WriteJsonAsync(
+                    output,
+                    new
+                    {
+                        status = "success",
+                        maintenance = await client.GetManagerMaintenanceAsync(
+                            GetRequiredArgument(
+                                args,
+                                "--manager",
+                                "The get-manager-maintenance automation command requires --manager."
+                            )
+                        ),
+                    }
+                ),
+                "reload-manager" => await WriteJsonAsync(
+                    output,
+                    await client.ReloadManagerAsync(BuildManagerMaintenanceRequest(args))
+                ),
+                "set-manager-executable" => await WriteJsonAsync(
+                    output,
+                    await client.SetManagerExecutablePathAsync(
+                        BuildManagerMaintenanceRequest(args, requirePath: true)
+                    )
+                ),
+                "clear-manager-executable" => await WriteJsonAsync(
+                    output,
+                    await client.ClearManagerExecutablePathAsync(BuildManagerMaintenanceRequest(args))
+                ),
+                "run-manager-action" => await WriteJsonAsync(
+                    output,
+                    await client.RunManagerActionAsync(
+                        BuildManagerMaintenanceRequest(args, requireAction: true)
+                    )
+                ),
                 "list-sources" => await WriteJsonAsync(
                     output,
                     new
@@ -424,6 +458,29 @@ public static class AutomationCliCommandRunner
                 "This automation command requires --name."
             ),
             SourceUrl = GetOptionalArgument(args, "--url"),
+        };
+    }
+
+    private static AutomationManagerMaintenanceRequest BuildManagerMaintenanceRequest(
+        IReadOnlyList<string> args,
+        bool requireAction = false,
+        bool requirePath = false
+    )
+    {
+        return new AutomationManagerMaintenanceRequest
+        {
+            ManagerName = GetRequiredArgument(
+                args,
+                "--manager",
+                "This automation command requires --manager."
+            ),
+            Action = requireAction
+                ? GetRequiredArgument(args, "--action", "This automation command requires --action.")
+                : GetOptionalArgument(args, "--action"),
+            Path = requirePath
+                ? GetRequiredArgument(args, "--path", "This automation command requires --path.")
+                : GetOptionalArgument(args, "--path"),
+            Confirm = args.Contains("--confirm"),
         };
     }
 
