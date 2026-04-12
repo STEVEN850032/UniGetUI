@@ -84,6 +84,13 @@ namespace UniGetUI.Interface
                         endpoints.MapGet("/v3/logs/app", V3_GetAppLog);
                         endpoints.MapGet("/v3/logs/history", V3_GetOperationHistory);
                         endpoints.MapGet("/v3/logs/manager", V3_GetManagerLog);
+                        endpoints.MapGet("/v3/bundles", V3_GetBundle);
+                        endpoints.MapPost("/v3/bundles/reset", V3_ResetBundle);
+                        endpoints.MapPost("/v3/bundles/import", V3_ImportBundle);
+                        endpoints.MapPost("/v3/bundles/export", V3_ExportBundle);
+                        endpoints.MapPost("/v3/bundles/add", V3_AddBundlePackage);
+                        endpoints.MapPost("/v3/bundles/remove", V3_RemoveBundlePackage);
+                        endpoints.MapPost("/v3/bundles/install", V3_InstallBundle);
                         endpoints.MapGet("/v3/packages/search", V3_SearchPackages);
                         endpoints.MapGet("/v3/packages/installed", V3_ListInstalledPackages);
                         endpoints.MapGet("/v3/packages/updates", V3_ListUpgradablePackages);
@@ -565,6 +572,98 @@ namespace UniGetUI.Interface
             }
         }
 
+        private async Task V3_GetBundle(HttpContext context)
+        {
+            if (!AuthenticateToken(context.Request.Query["token"]))
+            {
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            try
+            {
+                await context.Response.WriteAsJsonAsync(
+                    await AutomationBundleApi.GetCurrentBundleAsync(),
+                    new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync(ex.Message);
+            }
+        }
+
+        private async Task V3_ResetBundle(HttpContext context)
+        {
+            if (!AuthenticateToken(context.Request.Query["token"]))
+            {
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            try
+            {
+                await context.Response.WriteAsJsonAsync(
+                    AutomationBundleApi.ResetBundle(),
+                    new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync(ex.Message);
+            }
+        }
+
+        private async Task V3_ImportBundle(HttpContext context)
+        {
+            await HandleBundleActionAsync<AutomationBundleImportRequest, AutomationBundleImportResult>(
+                context,
+                AutomationBundleApi.ImportBundleAsync
+            );
+        }
+
+        private async Task V3_ExportBundle(HttpContext context)
+        {
+            await HandleBundleActionAsync<AutomationBundleExportRequest, AutomationBundleExportResult>(
+                context,
+                AutomationBundleApi.ExportBundleAsync
+            );
+        }
+
+        private async Task V3_AddBundlePackage(HttpContext context)
+        {
+            await HandleBundleActionAsync<
+                AutomationBundlePackageRequest,
+                AutomationBundlePackageOperationResult
+            >(context, AutomationBundleApi.AddPackageAsync);
+        }
+
+        private async Task V3_RemoveBundlePackage(HttpContext context)
+        {
+            await HandleBundleActionAsync<
+                AutomationBundlePackageRequest,
+                AutomationBundlePackageOperationResult
+            >(context, AutomationBundleApi.RemovePackageAsync);
+        }
+
+        private async Task V3_InstallBundle(HttpContext context)
+        {
+            await HandleBundleActionAsync<
+                AutomationBundleInstallRequest,
+                AutomationBundleInstallResult
+            >(context, AutomationBundleApi.InstallBundleAsync);
+        }
+
         private async Task WIDGETS_V1_GetUniGetUIVersion(HttpContext context)
         {
             if (!AuthenticateToken(context.Request.Query["token"]))
@@ -906,6 +1005,48 @@ namespace UniGetUI.Interface
                 context.Response.StatusCode = 400;
                 await context.Response.WriteAsync(ex.Message);
             }
+        }
+
+        private static async Task HandleBundleActionAsync<TRequest, TResult>(
+            HttpContext context,
+            Func<TRequest, Task<TResult>> action
+        )
+        {
+            if (!AuthenticateToken(context.Request.Query["token"]))
+            {
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            try
+            {
+                await context.Response.WriteAsJsonAsync(
+                    await action(await ReadJsonBodyAsync<TRequest>(context)),
+                    new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync(ex.Message);
+            }
+        }
+
+        private static async Task<TRequest> ReadJsonBodyAsync<TRequest>(HttpContext context)
+        {
+            var request = await context.Request.ReadFromJsonAsync<TRequest>(
+                new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true,
+                }
+            );
+            return request
+                ?? throw new InvalidOperationException("The request body is required.");
         }
 
         private static AutomationPackageActionRequest BuildPackageActionRequest(HttpRequest request)

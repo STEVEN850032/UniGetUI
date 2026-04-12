@@ -37,6 +37,13 @@
 | `--automation get-app-log [--level n]` | Reads the UniGetUI application log as structured JSON, with optional severity filtering | 2026.1+ |
 | `--automation get-operation-history` | Reads the persisted operation history shown by the log/history UI surfaces | 2026.1+ |
 | `--automation get-manager-log [--manager name] [--verbose]` | Reads manager task logs, optionally for one manager and with verbose subprocess/stdin/stdout detail | 2026.1+ |
+| `--automation get-bundle` | Reads the current in-memory package bundle as structured JSON, including compatibility and selected install-version metadata | 2026.1+ |
+| `--automation reset-bundle` | Clears the current in-memory package bundle | 2026.1+ |
+| `--automation import-bundle (--path path \| --content text) [--format {ubundle\|json\|yaml\|xml}] [--append]` | Loads bundle content from a file path or raw content, optionally appending instead of replacing the current bundle | 2026.1+ |
+| `--automation export-bundle [--path path]` | Serializes the current in-memory bundle and optionally writes it to a `.ubundle` or `.json` file | 2026.1+ |
+| `--automation add-bundle-package --package-id id [--manager name] [--package-source source] [--version v] [--scope scope] [--pre-release] [--selection {search\|installed\|updates\|auto}]` | Resolves a package and adds it to the current bundle with the requested install options | 2026.1+ |
+| `--automation remove-bundle-package --package-id id [--manager name] [--package-source source] [--version v]` | Removes matching package entries from the current bundle | 2026.1+ |
+| `--automation install-bundle [--include-installed true\|false] [--elevated true\|false] [--interactive true\|false] [--skip-hash true\|false]` | Installs the current bundle through the automation service and returns per-package results | 2026.1+ |
 | `--automation list-installed --manager name` | Lists installed packages for the selected manager through the automation service and returns structured JSON | 2026.1+ |
 | `--automation search-packages --manager name --query text [--max-results n]` | Searches packages through the automation service and returns structured JSON | 2026.1+ |
 | `--automation package-details --manager name --package-id id` | Fetches the package-details payload currently exposed through the automation layer | 2026.1+ |
@@ -69,7 +76,7 @@
 
 - `dotnet src\UniGetUI.Avalonia\bin\Release\net10.0\UniGetUI.Avalonia.dll --headless` starts the local automation daemon without opening any window or requiring a graphical desktop session.
 - `dotnet src\UniGetUI.Cli\bin\Release\net10.0\UniGetUI.Cli.dll <command>` is the cross-platform CLI wrapper for the automation service. It automatically prepends `--automation`, so `UniGetUI.Cli status` and `UniGetUI.Cli search-packages --manager ".NET Tool" --query dotnetsay` work directly.
-- Current agent-oriented command coverage includes status/version, manager/source inspection, settings inspection and mutation, desktop-shortcut state management, app/history/manager log inspection, package search/details/version listing, ignored-update management, and package install/update/uninstall flows.
+- Current agent-oriented command coverage includes status/version, manager/source inspection, settings inspection and mutation, desktop-shortcut state management, app/history/manager log inspection, current bundle inspection/import/export/add/remove/install flows, package search/details/version listing, ignored-update management, and package install/update/uninstall flows.
 
 <br><br>
 # `unigetui://` deep link

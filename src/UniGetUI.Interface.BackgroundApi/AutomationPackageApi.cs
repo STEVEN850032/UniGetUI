@@ -91,6 +91,15 @@ public sealed class AutomationIgnoredUpdateInfo
     public string PauseUntil { get; set; } = "";
 }
 
+internal enum AutomationPackageLookupMode
+{
+    Search,
+    Installed,
+    Upgradable,
+    InstalledOrUpgradable,
+    Any,
+}
+
 public static class AutomationPackageApi
 {
     public static IReadOnlyList<AutomationPackageInfo> SearchPackages(
@@ -319,20 +328,7 @@ public static class AutomationPackageApi
         using var operation = operationFactory(package, options);
         await operation.MainThread();
 
-        return new AutomationPackageOperationResult
-        {
-            Status = operation.Status == OperationStatus.Succeeded ? "success" : "error",
-            Command = command,
-            OperationStatus = operation.Status.ToString().ToLowerInvariant(),
-            Message = operation.Status switch
-            {
-                OperationStatus.Succeeded => null,
-                OperationStatus.Canceled => "The operation was canceled.",
-                _ => operation.GetOutput().LastOrDefault().Item1,
-            },
-            Package = ToAutomationPackageInfo(package),
-            Output = operation.GetOutput().Select(line => line.Item1).ToArray(),
-        };
+        return CreateOperationResult(command, package, operation);
     }
 
     private static void ApplyRequestOptions(
@@ -354,6 +350,58 @@ public static class AutomationPackageApi
         {
             options.PreRelease = request.PreRelease.Value;
         }
+    }
+
+    internal static void ApplyRequestedOptions(
+        InstallOptions options,
+        AutomationPackageActionRequest request
+    )
+    {
+        ApplyRequestOptions(options, request);
+    }
+
+    internal static IPackage ResolvePackage(
+        AutomationPackageActionRequest request,
+        AutomationPackageLookupMode lookupMode = AutomationPackageLookupMode.Any
+    )
+    {
+        return lookupMode switch
+        {
+            AutomationPackageLookupMode.Search => FindSearchResult(request),
+            AutomationPackageLookupMode.Installed => FindInstalledPackage(request),
+            AutomationPackageLookupMode.Upgradable => FindUpgradablePackage(request),
+            AutomationPackageLookupMode.InstalledOrUpgradable => FindUpgradablePackageOrInstalledPackage(
+                request
+            ),
+            _ => FindAnyPackage(request),
+        };
+    }
+
+    internal static AutomationPackageInfo CreateAutomationPackageInfo(IPackage package)
+    {
+        return ToAutomationPackageInfo(package);
+    }
+
+    internal static AutomationPackageOperationResult CreateOperationResult(
+        string command,
+        IPackage package,
+        AbstractOperation operation
+    )
+    {
+        return new AutomationPackageOperationResult
+        {
+            Status = operation.Status == OperationStatus.Succeeded ? "success" : "error",
+            Command = command,
+            OperationStatus = operation.Status.ToString().ToLowerInvariant(),
+            Message = operation.Status switch
+            {
+                OperationStatus.Succeeded => null,
+                OperationStatus.Canceled => "The operation was canceled.",
+                _ => operation.GetOutput().LastOrDefault().Item1,
+            },
+            Package = ToAutomationPackageInfo(package),
+            Output = operation.GetOutput().Select(line => line.Item1).ToArray(),
+        };
     }
 
     private static IPackage FindSearchResult(AutomationPackageActionRequest request)

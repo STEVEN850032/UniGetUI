@@ -237,6 +237,100 @@ public sealed class BackgroundApiClient : IDisposable
         ) ?? [];
     }
 
+    public async Task<AutomationBundleInfo> GetBundleAsync()
+    {
+        return await ReadAuthenticatedJsonAsync<AutomationBundleInfo>(HttpMethod.Get, "/v3/bundles")
+            ?? new AutomationBundleInfo();
+    }
+
+    public async Task<BackgroundApiCommandResult> ResetBundleAsync()
+    {
+        return await ReadAuthenticatedJsonAsync<BackgroundApiCommandResult>(
+                HttpMethod.Post,
+                "/v3/bundles/reset"
+            )
+            ?? new BackgroundApiCommandResult
+            {
+                Status = "error",
+                Message = "The background API returned an empty response.",
+            };
+    }
+
+    public async Task<AutomationBundleImportResult> ImportBundleAsync(
+        AutomationBundleImportRequest request
+    )
+    {
+        return await ReadAuthenticatedJsonWithBodyAsync<
+                AutomationBundleImportResult,
+                AutomationBundleImportRequest
+            >("/v3/bundles/import", request)
+            ?? new AutomationBundleImportResult
+            {
+                Status = "error",
+                Message = "The background API returned an empty response.",
+            };
+    }
+
+    public async Task<AutomationBundleExportResult> ExportBundleAsync(
+        AutomationBundleExportRequest request
+    )
+    {
+        return await ReadAuthenticatedJsonWithBodyAsync<
+                AutomationBundleExportResult,
+                AutomationBundleExportRequest
+            >("/v3/bundles/export", request)
+            ?? new AutomationBundleExportResult
+            {
+                Status = "error",
+                Message = "The background API returned an empty response.",
+            };
+    }
+
+    public async Task<AutomationBundlePackageOperationResult> AddBundlePackageAsync(
+        AutomationBundlePackageRequest request
+    )
+    {
+        return await ReadAuthenticatedJsonWithBodyAsync<
+                AutomationBundlePackageOperationResult,
+                AutomationBundlePackageRequest
+            >("/v3/bundles/add", request)
+            ?? new AutomationBundlePackageOperationResult
+            {
+                Status = "error",
+                Message = "The background API returned an empty response.",
+            };
+    }
+
+    public async Task<AutomationBundlePackageOperationResult> RemoveBundlePackageAsync(
+        AutomationBundlePackageRequest request
+    )
+    {
+        return await ReadAuthenticatedJsonWithBodyAsync<
+                AutomationBundlePackageOperationResult,
+                AutomationBundlePackageRequest
+            >("/v3/bundles/remove", request)
+            ?? new AutomationBundlePackageOperationResult
+            {
+                Status = "error",
+                Message = "The background API returned an empty response.",
+            };
+    }
+
+    public async Task<AutomationBundleInstallResult> InstallBundleAsync(
+        AutomationBundleInstallRequest request
+    )
+    {
+        return await ReadAuthenticatedJsonWithBodyAsync<
+                AutomationBundleInstallResult,
+                AutomationBundleInstallRequest
+            >("/v3/bundles/install", request)
+            ?? new AutomationBundleInstallResult
+            {
+                Status = "error",
+                Message = "The background API returned an empty response.",
+            };
+    }
+
     public async Task<BackgroundApiCommandResult> OpenWindowAsync()
     {
         await SendAuthenticatedGetAsync("/widgets/v1/open_wingetui");
@@ -469,7 +563,8 @@ public sealed class BackgroundApiClient : IDisposable
     private async Task<string> SendAuthenticatedAsync(
         HttpMethod method,
         string relativePath,
-        IReadOnlyDictionary<string, string>? queryParameters = null
+        IReadOnlyDictionary<string, string>? queryParameters = null,
+        HttpContent? requestContent = null
     )
     {
         EnsureTokenAvailable();
@@ -479,7 +574,7 @@ public sealed class BackgroundApiClient : IDisposable
             ["token"] = _token,
         };
 
-        return await SendAsync(method, relativePath, parameters);
+        return await SendAsync(method, relativePath, parameters, requestContent);
     }
 
     private async Task<string> SendUnauthenticatedGetAsync(
@@ -493,11 +588,13 @@ public sealed class BackgroundApiClient : IDisposable
     private async Task<string> SendAsync(
         HttpMethod method,
         string relativePath,
-        IReadOnlyDictionary<string, string>? queryParameters = null
+        IReadOnlyDictionary<string, string>? queryParameters = null,
+        HttpContent? requestContent = null
     )
     {
         using var timeout = new CancellationTokenSource(GetRequestTimeout(method, relativePath));
         using var request = new HttpRequestMessage(method, BuildRelativeUri(relativePath, queryParameters));
+        request.Content = requestContent;
         using var response = await _httpClient.SendAsync(request, timeout.Token);
         string content = await response.Content.ReadAsStringAsync();
 
@@ -519,6 +616,31 @@ public sealed class BackgroundApiClient : IDisposable
     {
         string json = await SendAuthenticatedAsync(method, relativePath, queryParameters);
         return JsonSerializer.Deserialize<T>(
+            json,
+            new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true,
+            }
+        );
+    }
+
+    private async Task<TResponse?> ReadAuthenticatedJsonWithBodyAsync<TResponse, TBody>(
+        string relativePath,
+        TBody body,
+        IReadOnlyDictionary<string, string>? queryParameters = null
+    )
+    {
+        using var content = JsonContent.Create(
+            body,
+            options: new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true,
+            }
+        );
+        string json = await SendAuthenticatedAsync(HttpMethod.Post, relativePath, queryParameters, content);
+        return JsonSerializer.Deserialize<TResponse>(
             json,
             new JsonSerializerOptions(SerializationHelpers.DefaultOptions)
             {
@@ -693,6 +815,16 @@ public sealed class BackgroundApiClient : IDisposable
             return method == HttpMethod.Post
                 ? TimeSpan.FromMinutes(5)
                 : TimeSpan.FromSeconds(30);
+        }
+
+        if (relativePath.StartsWith("/v3/bundles/install", StringComparison.OrdinalIgnoreCase))
+        {
+            return TimeSpan.FromMinutes(5);
+        }
+
+        if (relativePath.StartsWith("/v3/bundles/", StringComparison.OrdinalIgnoreCase))
+        {
+            return method == HttpMethod.Post ? TimeSpan.FromMinutes(1) : TimeSpan.FromSeconds(15);
         }
 
         if (relativePath.StartsWith("/v3/sources/", StringComparison.OrdinalIgnoreCase))

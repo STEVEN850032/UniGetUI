@@ -67,6 +67,15 @@ function Get-DaemonLog {
     return ($stdout, $stderr -join [Environment]::NewLine).Trim()
 }
 
+function Write-Stage {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Name
+    )
+
+    Write-Host "== $Name =="
+}
+
 try {
     function Invoke-CliJson {
         param(
@@ -74,7 +83,14 @@ try {
             [string[]] $Arguments
         )
 
-        $output = & dotnet run --project $cliProject --configuration $configuration --no-build -- @Arguments @transportArgs 2>&1
+        $commandArguments = @(
+            'run',
+            '--project', $cliProject,
+            '--configuration', $configuration,
+            '--no-build',
+            '--'
+        ) + $Arguments + $transportArgs
+        $output = & dotnet $commandArguments 2>&1
         if ($LASTEXITCODE -ne 0) {
             throw "CLI command failed ($LASTEXITCODE): $($Arguments -join ' ')`n$output"
         }
@@ -131,6 +147,7 @@ try {
         throw "Headless daemon never became ready.`n$daemonOutput"
     }
 
+    Write-Stage 'Manager and settings inspection'
     $managers = Invoke-CliJson -Arguments @('list-managers')
     if (@($managers.managers | Where-Object { $_.name -eq '.NET Tool' }).Count -eq 0) {
         throw "list-managers did not report the .NET Tool manager"
@@ -210,6 +227,7 @@ try {
         throw "set-setting did not enable FreshBoolSetting"
     }
 
+    Write-Stage 'Package discovery'
     $search = Invoke-CliJson -Arguments @('search-packages', '--manager', '.NET Tool', '--query', 'dotnetsay', '--max-results', '20')
     $searchMatch = @($search.packages | Where-Object { $_.id -eq 'dotnetsay' })
     if ($searchMatch.Count -eq 0) {
@@ -230,11 +248,82 @@ try {
         throw "package-versions did not report version 2.1.4 for dotnetsay"
     }
 
+    Write-Stage 'Bundle roundtrip'
+    Write-Host ' - reset bundle'
+    $resetBundle = Invoke-CliJson -Arguments @('reset-bundle')
+    if ($resetBundle.status -ne 'success') {
+        throw "reset-bundle failed: $($resetBundle | ConvertTo-Json -Depth 8)"
+    }
+
+    Write-Host ' - get empty bundle'
+    $bundleAfterReset = Invoke-CliJson -Arguments @('get-bundle')
+    if ($bundleAfterReset.bundle.packageCount -ne 0) {
+        throw "get-bundle did not return an empty bundle after reset-bundle"
+    }
+
+    Write-Host ' - add package to bundle'
+    $addBundlePackage = Invoke-CliJson -Arguments @(
+        'add-bundle-package',
+        '--manager', '.NET Tool',
+        '--package-id', 'dotnetsay',
+        '--version', '2.1.4',
+        '--scope', 'Global',
+        '--selection', 'search'
+    )
+    if ($addBundlePackage.package.id -ne 'dotnetsay') {
+        throw "add-bundle-package did not add dotnetsay to the current bundle"
+    }
+
+    Write-Host ' - inspect bundle contents'
+    $bundle = Invoke-CliJson -Arguments @('get-bundle')
+    if (@($bundle.bundle.packages | Where-Object { $_.id -eq 'dotnetsay' -and $_.selectedVersion -eq '2.1.4' }).Count -eq 0) {
+        throw "get-bundle did not return dotnetsay with the selected install version"
+    }
+
+    Write-Host ' - export bundle'
+    $exportedBundle = Invoke-CliJson -Arguments @('export-bundle')
+    if ([string]::IsNullOrWhiteSpace($exportedBundle.content) -or $exportedBundle.content -notmatch '"dotnetsay"') {
+        throw "export-bundle did not return serialized bundle content"
+    }
+    $bundleRoundtripPath = Join-Path $daemonRoot 'BundleRoundtrip.json'
+    Set-Content -Path $bundleRoundtripPath -Value $exportedBundle.content -Encoding UTF8
+
+    Write-Host ' - remove package from bundle'
+    $removeBundlePackage = Invoke-CliJson -Arguments @(
+        'remove-bundle-package',
+        '--manager', '.NET Tool',
+        '--package-id', 'dotnetsay'
+    )
+    if ($removeBundlePackage.removedCount -lt 1) {
+        throw "remove-bundle-package did not remove dotnetsay from the current bundle"
+    }
+
+    Write-Host ' - confirm bundle removal'
+    $bundleAfterRemove = Invoke-CliJson -Arguments @('get-bundle')
+    if ($bundleAfterRemove.bundle.packageCount -ne 0) {
+        throw "remove-bundle-package did not leave the current bundle empty"
+    }
+
+    Write-Host ' - import exported bundle content'
+    $importBundle = Invoke-CliJson -Arguments @(
+        'import-bundle',
+        '--path', $bundleRoundtripPath
+    )
+    if (
+        $importBundle.status -ne 'success' -or
+        @($importBundle.bundle.packages | Where-Object { $_.id -eq 'dotnetsay' -and $_.selectedVersion -eq '2.1.4' }).Count -eq 0
+    ) {
+        throw "import-bundle did not restore dotnetsay from the exported bundle content"
+    }
+
+    Write-Stage 'Package lifecycle'
+    Write-Host ' - install package directly'
     $install = Invoke-CliJson -Arguments @('install-package', '--manager', '.NET Tool', '--package-id', 'dotnetsay', '--version', '2.1.4', '--scope', 'Global')
     if ($install.status -ne 'success') {
         throw "install-package failed: $($install | ConvertTo-Json -Depth 8)"
     }
 
+    Write-Host ' - wait for installed package to appear'
     $installed = Wait-ForCliCondition `
         -Arguments @('list-installed', '--manager', '.NET Tool') `
         -FailureMessage 'list-installed did not include dotnetsay after installation' `
@@ -244,15 +333,7 @@ try {
         }
     $installedDotnetsay = @($installed.packages | Where-Object { $_.id -eq 'dotnetsay' })
 
-    $installed = Wait-ForCliCondition `
-        -Arguments @('list-installed', '--manager', '.NET Tool') `
-        -FailureMessage 'dotnetsay did not report version 2.1.4 after installation' `
-        -Condition {
-            param($response)
-            @($response.packages | Where-Object { $_.id -eq 'dotnetsay' -and $_.version -eq '2.1.4' }).Count -gt 0
-        }
-    $installedDotnetsay = @($installed.packages | Where-Object { $_.id -eq 'dotnetsay' })
-
+    Write-Host ' - ignore package updates'
     $ignore = Invoke-CliJson -Arguments @('ignore-package', '--manager', '.NET Tool', '--package-id', 'dotnetsay')
     if ($ignore.status -ne 'success') {
         throw "ignore-package failed: $($ignore | ConvertTo-Json -Depth 8)"
@@ -263,6 +344,7 @@ try {
         throw "list-ignored-updates did not report dotnetsay after ignore-package"
     }
 
+    Write-Host ' - remove ignored update'
     $unignore = Invoke-CliJson -Arguments @('unignore-package', '--manager', '.NET Tool', '--package-id', 'dotnetsay')
     if ($unignore.status -ne 'success') {
         throw "unignore-package failed: $($unignore | ConvertTo-Json -Depth 8)"
@@ -273,11 +355,13 @@ try {
         throw "unignore-package did not remove dotnetsay from ignored updates"
     }
 
+    Write-Host ' - update package to latest'
     $update = Invoke-CliJson -Arguments @('update-package', '--manager', '.NET Tool', '--package-id', 'dotnetsay', '--version', $latestDotnetsayVersion)
     if ($update.status -ne 'success') {
         throw "update-package failed: $($update | ConvertTo-Json -Depth 8)"
     }
 
+    Write-Host ' - wait for updated version'
     $installedAfterUpdate = Wait-ForCliCondition `
         -Arguments @('list-installed', '--manager', '.NET Tool') `
         -FailureMessage 'list-installed did not include an updated dotnetsay version after update' `
@@ -287,11 +371,13 @@ try {
         }
     $updatedDotnetsay = @($installedAfterUpdate.packages | Where-Object { $_.id -eq 'dotnetsay' })
 
+    Write-Host ' - uninstall package'
     $uninstall = Invoke-CliJson -Arguments @('uninstall-package', '--manager', '.NET Tool', '--package-id', 'dotnetsay', '--scope', 'Global')
     if ($uninstall.status -ne 'success') {
         throw "uninstall-package failed: $($uninstall | ConvertTo-Json -Depth 8)"
     }
 
+    Write-Host ' - wait for uninstall cleanup'
     $installedAfterUninstall = Wait-ForCliCondition `
         -Arguments @('list-installed', '--manager', '.NET Tool') `
         -FailureMessage 'dotnetsay still appears in list-installed after uninstall' `
@@ -301,6 +387,7 @@ try {
         }
     $remainingDotnetsay = @($installedAfterUninstall.packages | Where-Object { $_.id -eq 'dotnetsay' })
 
+    Write-Stage 'History and manager logs'
     $operationHistory = Invoke-CliJson -Arguments @('get-operation-history')
     if ($null -eq $operationHistory.history) {
         throw "get-operation-history did not return a history payload"

@@ -166,6 +166,38 @@ public static class AutomationCliCommandRunner
                         ),
                     }
                 ),
+                "get-bundle" => await WriteJsonAsync(
+                    output,
+                    new
+                    {
+                        status = "success",
+                        bundle = await client.GetBundleAsync(),
+                    }
+                ),
+                "reset-bundle" => await WriteJsonAsync(
+                    output,
+                    await client.ResetBundleAsync()
+                ),
+                "import-bundle" => await WriteJsonAsync(
+                    output,
+                    await client.ImportBundleAsync(BuildBundleImportRequest(args))
+                ),
+                "export-bundle" => await WriteJsonAsync(
+                    output,
+                    await client.ExportBundleAsync(BuildBundleExportRequest(args))
+                ),
+                "add-bundle-package" => await WriteJsonAsync(
+                    output,
+                    await client.AddBundlePackageAsync(BuildBundlePackageRequest(args))
+                ),
+                "remove-bundle-package" => await WriteJsonAsync(
+                    output,
+                    await client.RemoveBundlePackageAsync(BuildBundlePackageRequest(args))
+                ),
+                "install-bundle" => await WriteJsonAsync(
+                    output,
+                    await client.InstallBundleAsync(BuildBundleInstallRequest(args))
+                ),
                 "get-version" => await WriteJsonAsync(
                     output,
                     new
@@ -369,6 +401,59 @@ public static class AutomationCliCommandRunner
         };
     }
 
+    private static AutomationBundleImportRequest BuildBundleImportRequest(
+        IReadOnlyList<string> args
+    )
+    {
+        return new AutomationBundleImportRequest
+        {
+            Path = GetOptionalArgument(args, "--path"),
+            Content = GetOptionalArgument(args, "--content"),
+            Format = GetOptionalArgument(args, "--format"),
+            Append = args.Contains("--append"),
+        };
+    }
+
+    private static AutomationBundleExportRequest BuildBundleExportRequest(
+        IReadOnlyList<string> args
+    )
+    {
+        return new AutomationBundleExportRequest { Path = GetOptionalArgument(args, "--path") };
+    }
+
+    private static AutomationBundlePackageRequest BuildBundlePackageRequest(
+        IReadOnlyList<string> args
+    )
+    {
+        return new AutomationBundlePackageRequest
+        {
+            PackageId = GetRequiredArgument(
+                args,
+                "--package-id",
+                "This automation command requires --package-id."
+            ),
+            ManagerName = GetOptionalArgument(args, "--manager"),
+            PackageSource = GetOptionalArgument(args, "--package-source"),
+            Version = GetOptionalArgument(args, "--version"),
+            Scope = GetOptionalArgument(args, "--scope"),
+            PreRelease = args.Contains("--pre-release") ? true : null,
+            Selection = GetOptionalArgument(args, "--selection"),
+        };
+    }
+
+    private static AutomationBundleInstallRequest BuildBundleInstallRequest(
+        IReadOnlyList<string> args
+    )
+    {
+        return new AutomationBundleInstallRequest
+        {
+            IncludeInstalled = GetOptionalBoolArgument(args, "--include-installed"),
+            Elevated = GetOptionalBoolArgument(args, "--elevated"),
+            Interactive = GetOptionalBoolArgument(args, "--interactive"),
+            SkipHash = GetOptionalBoolArgument(args, "--skip-hash"),
+        };
+    }
+
     private static AutomationSettingValueRequest BuildSettingRequest(IReadOnlyList<string> args)
     {
         bool? enabled = null;
@@ -444,6 +529,27 @@ public static class AutomationCliCommandRunner
 
         throw new InvalidOperationException(
             $"The value supplied to {argumentName} must be an integer."
+        );
+    }
+
+    private static bool? GetOptionalBoolArgument(
+        IReadOnlyList<string> arguments,
+        string argumentName
+    )
+    {
+        string? value = GetOptionalArgument(arguments, argumentName);
+        if (value is null)
+        {
+            return null;
+        }
+
+        if (bool.TryParse(value, out bool result))
+        {
+            return result;
+        }
+
+        throw new InvalidOperationException(
+            $"The value supplied to {argumentName} must be either true or false."
         );
     }
 
