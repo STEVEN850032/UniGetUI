@@ -66,6 +66,8 @@
   "Version to install:": "Versió a instal·lar:",
   "Architecture to install:": "Arquitectura a instal·lar:",
   "Installation scope:": "Entorn d'instal·lació:",
+  "User | Local": "Usuari | Local",
+  "Machine | Global": "Màquina | Global",
   "Install location:": "Ubicació d'instal·lació:",
   "Select": "Sel·lecciona",
   "Reset": "Reseteja",

@@ -66,6 +66,8 @@
   "Version to install:": "Version to install:",
   "Architecture to install:": "Architecture to install:",
   "Installation scope:": "Installation scope:",
+  "User | Local": "User | Local",
+  "Machine | Global": "Machine | Global",
   "Install location:": "Install location:",
   "Select": "Select",
   "Reset": "Reset",
