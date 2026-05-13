@@ -1,0 +1,242 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="UniGetUI.Tui.Views.MainWindow"
+        Title="UniGetUI TUI"
+        Width="128"
+        Height="42">
+    <DockPanel Margin="1">
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock Text="UniGetUI TUI"
+                       FontWeight="Bold" />
+            <TextBlock Text="{Binding StatusText}" />
+            <StackPanel Orientation="Horizontal"
+                        Spacing="1">
+                <Button Content="_Dashboard" Command="{Binding NavigateDashboardCommand}" />
+                <Button Content="D_iscover" Command="{Binding NavigateDiscoverCommand}" />
+                <Button Content="_Updates" Command="{Binding NavigateUpdatesCommand}" />
+                <Button Content="_Installed" Command="{Binding NavigateInstalledCommand}" />
+                <Button Content="_Bundles" Command="{Binding NavigateBundlesCommand}" />
+                <Button Content="_Settings" Command="{Binding NavigateSettingsCommand}" />
+                <Button Content="_Logs" Command="{Binding NavigateLogsCommand}" />
+                <Button Content="_Help" Command="{Binding NavigateHelpCommand}" />
+                <Button Content="Bac_kup" Command="{Binding NavigateBackupCommand}" />
+                <Button Content="E_xit" Click="OnExit" />
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom"
+                    Orientation="Horizontal"
+                    Spacing="1">
+            <Button Content="_Refresh" Command="{Binding RefreshCommand}" />
+            <Button Content="Re_load page" Command="{Binding ReloadCommand}" />
+            <Button Content="_Search" Command="{Binding SearchCommand}" />
+            <Button Content="Select _all" Command="{Binding SelectAllCommand}" />
+            <Button Content="_Clear selection" Command="{Binding ClearSelectionCommand}" />
+            <Button Content="_Details" Command="{Binding DetailsCommand}" />
+            <Button Content="I_nstall" Command="{Binding InstallCommand}" />
+            <Button Content="_Update" Command="{Binding UpdateCommand}" />
+            <Button Content="Un_install" Command="{Binding UninstallCommand}" />
+            <Button Content="Add to _bundle" Command="{Binding AddToBundleCommand}" />
+            <Button Content="_Remove from bundle" Command="{Binding RemoveFromBundleCommand}" />
+            <Button Content="Install bundle" Command="{Binding InstallBundleCommand}" />
+        </StackPanel>
+
+        <Grid RowDefinitions="Auto,*"
+              Margin="0,1,0,1">
+            <TextBlock Text="{Binding PageTitle}"
+                       FontWeight="Bold" />
+
+            <Grid Grid.Row="1"
+                  IsVisible="{Binding IsDashboardVisible}"
+                  RowDefinitions="Auto,*">
+                <StackPanel Orientation="Horizontal"
+                            Spacing="4">
+                    <TextBlock Text="Installed:" />
+                    <TextBlock Text="{Binding InstalledPackageCount}" />
+                    <TextBlock Text="Updates:" />
+                    <TextBlock Text="{Binding UpgradablePackageCount}" />
+                    <TextBlock Text="Bundle:" />
+                    <TextBlock Text="{Binding BundlePackageCount}" />
+                </StackPanel>
+                <Border Grid.Row="1"
+                        BorderThickness="1"
+                        Padding="1">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top"
+                                   Text="Package managers"
+                                   FontWeight="Bold" />
+                        <ScrollViewer>
+                            <ItemsControl ItemsSource="{Binding Managers}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="24,14,*">
+                                            <TextBlock Text="{Binding Name}" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding State}" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding Executable}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Row="1"
+                  IsVisible="{Binding IsPackagesVisible}"
+                  RowDefinitions="Auto,*,8">
+                <Grid ColumnDefinitions="10,*,20">
+                    <TextBlock Text="Query:" />
+                    <TextBox Grid.Column="1"
+                             Text="{Binding SearchQuery}" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding PackageSubtitle}" />
+                </Grid>
+                <StackPanel Grid.Row="0"
+                            Orientation="Horizontal"
+                            Spacing="1"
+                            HorizontalAlignment="Right">
+                    <TextBlock Text="Bundle path:" />
+                    <TextBox Width="35"
+                             Text="{Binding BundlePath}" />
+                    <Button Content="Import" Command="{Binding ImportBundleCommand}" />
+                    <Button Content="Export" Command="{Binding ExportBundleCommand}" />
+                </StackPanel>
+
+                <Grid Grid.Row="1"
+                      ColumnDefinitions="2*,*">
+                    <Border BorderThickness="1"
+                            Padding="1">
+                        <DockPanel>
+                            <Grid DockPanel.Dock="Top"
+                                  ColumnDefinitions="4,28,26,14,14,18,14">
+                                <TextBlock Text="Sel" />
+                                <TextBlock Grid.Column="1" Text="Name" />
+                                <TextBlock Grid.Column="2" Text="Id" />
+                                <TextBlock Grid.Column="3" Text="Version" />
+                                <TextBlock Grid.Column="4" Text="New" />
+                                <TextBlock Grid.Column="5" Text="Manager" />
+                                <TextBlock Grid.Column="6" Text="Source" />
+                            </Grid>
+                            <ListBox ItemsSource="{Binding PackageRows}"
+                                     SelectedItem="{Binding SelectedPackage, Mode=TwoWay}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="4,28,26,14,14,18,14">
+                                            <CheckBox IsChecked="{Binding IsChecked}" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Id}" />
+                                            <TextBlock Grid.Column="3" Text="{Binding Version}" />
+                                            <TextBlock Grid.Column="4" Text="{Binding NewVersion}" />
+                                            <TextBlock Grid.Column="5" Text="{Binding Manager}" />
+                                            <TextBlock Grid.Column="6" Text="{Binding Source}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Column="1"
+                            BorderThickness="1"
+                            Padding="1"
+                            Margin="1,0,0,0">
+                        <ScrollViewer>
+                            <TextBlock Text="{Binding DetailsText}"
+                                       TextWrapping="Wrap" />
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+
+                <Border Grid.Row="2"
+                        BorderThickness="1"
+                        Padding="1"
+                        Margin="0,1,0,0">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right"
+                                    Orientation="Horizontal"
+                                    Spacing="1">
+                            <Button Content="Cancel ops" Command="{Binding CancelOperationsCommand}" />
+                            <Button Content="Clear done" Command="{Binding ClearFinishedOperationsCommand}" />
+                        </StackPanel>
+                        <ListBox ItemsSource="{Binding Operations}"
+                                 SelectedItem="{Binding SelectedOperation, Mode=TwoWay}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="34,*">
+                                        <TextBlock Text="{Binding Title}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Status}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Row="1"
+                  IsVisible="{Binding IsSettingsVisible}">
+                <ListBox ItemsSource="{Binding SettingRows}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="32,10,*">
+                                <TextBlock Text="{Binding Title}" />
+                                <CheckBox Grid.Column="1"
+                                          IsVisible="{Binding IsBoolean}"
+                                          IsChecked="{Binding IsEnabled}" />
+                                <TextBox Grid.Column="1"
+                                         IsVisible="{Binding IsStringValue}"
+                                         Text="{Binding Value}" />
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding Description}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+
+            <Grid Grid.Row="1"
+                  IsVisible="{Binding IsLogsVisible}"
+                  RowDefinitions="Auto,*">
+                <StackPanel Orientation="Horizontal"
+                            Spacing="1">
+                    <Button Content="_Reload logs" Command="{Binding RefreshLogsCommand}" />
+                </StackPanel>
+                <Grid Grid.Row="1"
+                      ColumnDefinitions="*,*">
+                    <ListBox ItemsSource="{Binding LogLines}" />
+                    <Border Grid.Column="1"
+                            BorderThickness="1"
+                            Padding="1"
+                            Margin="1,0,0,0">
+                        <ScrollViewer>
+                            <TextBlock Text="{Binding SelectedLogText}"
+                                       TextWrapping="Wrap" />
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1"
+                          IsVisible="{Binding IsHelpVisible}">
+                <TextBlock TextWrapping="Wrap"
+                           Text="Keyboard: use Alt+highlighted letters where supported, Tab to move focus, Enter/Space to activate. Discover requires a query, then Search/Reload. Select packages with checkboxes, then run Install/Update/Uninstall or add them to the bundle. Help and release notes use terminal text and browser links rather than embedded WebView." />
+            </ScrollViewer>
+
+            <ScrollViewer Grid.Row="1"
+                          IsVisible="{Binding IsBackupVisible}">
+                <StackPanel>
+                    <TextBlock Text="Backup/Auth status"
+                               FontWeight="Bold" />
+                    <TextBlock Text="Backup directory:" />
+                    <TextBlock Text="{Binding BackupDirectory}" />
+                    <TextBlock Text="GitHub login:" />
+                    <TextBlock Text="{Binding GitHubLogin}" />
+                    <TextBlock TextWrapping="Wrap"
+                               Text="Use Settings to edit backup paths and enable local/cloud backup flags. Browser-based GitHub login and cloud backup restore are intentionally represented as terminal-safe status surfaces here; graphical OAuth prompts remain in the desktop shell." />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>
