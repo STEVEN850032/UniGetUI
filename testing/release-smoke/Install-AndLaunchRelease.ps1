@@ -77,6 +77,18 @@ public static class ReleaseSmokeNativeMethods
 
     [DllImport("user32.dll")]
     public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetDC(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+    [DllImport("gdi32.dll")]
+    public static extern bool BitBlt(IntPtr hdcDest, int xDest, int yDest, int width, int height, IntPtr hdcSrc, int xSrc, int ySrc, int rasterOperation);
+
+    [DllImport("user32.dll")]
+    public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, uint nFlags);
 }
 '@
     }
@@ -122,7 +134,28 @@ function Save-DesktopScreenshot {
     $bitmap = [System.Drawing.Bitmap]::new($bounds.Width, $bounds.Height)
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     try {
-        $graphics.CopyFromScreen($bounds.Left, $bounds.Top, 0, 0, $bounds.Size)
+        try {
+            $graphics.CopyFromScreen($bounds.Left, $bounds.Top, 0, 0, $bounds.Size)
+        }
+        catch {
+            $sourceDc = [ReleaseSmokeNativeMethods]::GetDC([IntPtr]::Zero)
+            if ($sourceDc -eq [IntPtr]::Zero) {
+                throw
+            }
+
+            $targetDc = $graphics.GetHdc()
+            try {
+                $srccopy = 0x00CC0020
+                if (-not [ReleaseSmokeNativeMethods]::BitBlt($targetDc, 0, 0, $bounds.Width, $bounds.Height, $sourceDc, $bounds.Left, $bounds.Top, $srccopy)) {
+                    throw "BitBlt failed while capturing the desktop."
+                }
+            }
+            finally {
+                $graphics.ReleaseHdc($targetDc)
+                [ReleaseSmokeNativeMethods]::ReleaseDC([IntPtr]::Zero, $sourceDc) | Out-Null
+            }
+        }
+
         $bitmap.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png)
     }
     finally {
@@ -163,7 +196,29 @@ function Save-WindowScreenshot {
     $bitmap = [System.Drawing.Bitmap]::new($width, $height)
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     try {
-        $graphics.CopyFromScreen($rect.Left, $rect.Top, 0, 0, [System.Drawing.Size]::new($width, $height))
+        $targetDc = $graphics.GetHdc()
+        try {
+            if (-not [ReleaseSmokeNativeMethods]::PrintWindow($WindowHandle, $targetDc, 2)) {
+                $sourceDc = [ReleaseSmokeNativeMethods]::GetDC([IntPtr]::Zero)
+                if ($sourceDc -eq [IntPtr]::Zero) {
+                    throw "GetDC failed while capturing the UniGetUI window."
+                }
+
+                try {
+                    $srccopy = 0x00CC0020
+                    if (-not [ReleaseSmokeNativeMethods]::BitBlt($targetDc, 0, 0, $width, $height, $sourceDc, $rect.Left, $rect.Top, $srccopy)) {
+                        throw "BitBlt failed while capturing the UniGetUI window."
+                    }
+                }
+                finally {
+                    [ReleaseSmokeNativeMethods]::ReleaseDC([IntPtr]::Zero, $sourceDc) | Out-Null
+                }
+            }
+        }
+        finally {
+            $graphics.ReleaseHdc($targetDc)
+        }
+
         $bitmap.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png)
     }
     finally {
