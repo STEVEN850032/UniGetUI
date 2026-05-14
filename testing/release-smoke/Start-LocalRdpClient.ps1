@@ -87,6 +87,7 @@ $rdpFile = Join-Path $SecretsDir 'localhost.rdp'
     "username:s:$UserName"
     "ClearTextPassword:s:$Password"
     'enablecredsspsupport:i:0'
+    'compression:i:0'
     'desktopwidth:i:1280'
     'desktopheight:i:720'
     'audiomode:i:2'
@@ -100,6 +101,9 @@ $arguments = @(
     '--rdp-file', $rdpFile,
     '--autologon',
     '--no-credssp',
+    '--no-server-pointer',
+    '--compression-enabled=false',
+    '--color-depth', '16',
     '--prevent-session-lock', '1',
     '--log-file', $clientLogPath
 )
