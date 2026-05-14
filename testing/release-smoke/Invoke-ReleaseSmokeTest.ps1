@@ -123,6 +123,12 @@ try {
     }
 
     if (Test-ShouldRunStage -Stage 'remoting-server') {
+        Write-Host '::group::Start interactive PSHostServer task'
+        Start-ScheduledTask -TaskName $taskName
+        Start-Sleep -Seconds 5
+        Get-ScheduledTask -TaskName $taskName | Get-ScheduledTaskInfo | Format-List | Out-String | Write-Host
+        Write-Host '::endgroup::'
+
         Write-Host '::group::Wait for interactive PSHostServer'
         & (Join-Path $scriptsRoot 'Start-InteractivePSHostServer.ps1') `
             -Wait `
