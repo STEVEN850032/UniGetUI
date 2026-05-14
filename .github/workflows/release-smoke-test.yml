@@ -1,6 +1,11 @@
 name: Release Smoke Test
 
 on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '.github/workflows/release-smoke-test.yml'
+      - 'testing/release-smoke/**'
   workflow_dispatch:
     inputs:
       release-repository:
@@ -43,10 +48,10 @@ jobs:
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          RELEASE_REPOSITORY: ${{ inputs['release-repository'] }}
-          RELEASE_TAG: ${{ inputs['release-tag'] }}
-          INSTALLER_ASSET_NAME: ${{ inputs['installer-asset-name'] }}
-          MAX_STAGE: ${{ inputs['max-stage'] }}
+          RELEASE_REPOSITORY: ${{ github.event.inputs['release-repository'] || 'Devolutions/UniGetUI' }}
+          RELEASE_TAG: ${{ github.event.inputs['release-tag'] || '' }}
+          INSTALLER_ASSET_NAME: ${{ github.event.inputs['installer-asset-name'] || 'UniGetUI.Installer.x64.exe' }}
+          MAX_STAGE: ${{ github.event.inputs['max-stage'] || 'install-launch' }}
         run: |
           .\testing\release-smoke\Invoke-ReleaseSmokeTest.ps1 `
             -ReleaseRepository $env:RELEASE_REPOSITORY `
