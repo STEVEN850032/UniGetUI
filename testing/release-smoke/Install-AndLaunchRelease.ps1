@@ -89,6 +89,9 @@ public static class ReleaseSmokeNativeMethods
 
     [DllImport("user32.dll")]
     public static extern bool SetProcessDPIAware();
+
+    [DllImport("gdi32.dll")]
+    public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
 }
 '@
     }
@@ -97,6 +100,44 @@ public static class ReleaseSmokeNativeMethods
 
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
+}
+
+function Get-PhysicalDesktopBounds {
+    Initialize-ScreenshotSupport
+
+    $sourceDc = [ReleaseSmokeNativeMethods]::GetDC([IntPtr]::Zero)
+    if ($sourceDc -eq [IntPtr]::Zero) {
+        throw 'GetDC failed while reading desktop dimensions.'
+    }
+
+    try {
+        $desktopHorzRes = 118
+        $desktopVertRes = 117
+        $horzRes = 8
+        $vertRes = 10
+
+        $width = [ReleaseSmokeNativeMethods]::GetDeviceCaps($sourceDc, $desktopHorzRes)
+        $height = [ReleaseSmokeNativeMethods]::GetDeviceCaps($sourceDc, $desktopVertRes)
+
+        if ($width -le 0 -or $height -le 0) {
+            $width = [ReleaseSmokeNativeMethods]::GetDeviceCaps($sourceDc, $horzRes)
+            $height = [ReleaseSmokeNativeMethods]::GetDeviceCaps($sourceDc, $vertRes)
+        }
+
+        if ($width -le 0 -or $height -le 0) {
+            throw "Desktop device dimensions are invalid: width=$width, height=$height."
+        }
+
+        [pscustomobject]@{
+            Left = 0
+            Top = 0
+            Width = $width
+            Height = $height
+        }
+    }
+    finally {
+        [ReleaseSmokeNativeMethods]::ReleaseDC([IntPtr]::Zero, $sourceDc) | Out-Null
+    }
 }
 
 function Wait-UniGetUIWindow {
@@ -135,30 +176,25 @@ function Save-DesktopScreenshot {
     $directory = Split-Path -Path $Path -Parent
     New-Item -Path $directory -ItemType Directory -Force | Out-Null
 
-    $bounds = [System.Windows.Forms.SystemInformation]::VirtualScreen
+    $bounds = Get-PhysicalDesktopBounds
     $bitmap = [System.Drawing.Bitmap]::new($bounds.Width, $bounds.Height)
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     try {
-        try {
-            $graphics.CopyFromScreen($bounds.Left, $bounds.Top, 0, 0, $bounds.Size)
+        $sourceDc = [ReleaseSmokeNativeMethods]::GetDC([IntPtr]::Zero)
+        if ($sourceDc -eq [IntPtr]::Zero) {
+            throw 'GetDC failed while capturing the desktop.'
         }
-        catch {
-            $sourceDc = [ReleaseSmokeNativeMethods]::GetDC([IntPtr]::Zero)
-            if ($sourceDc -eq [IntPtr]::Zero) {
-                throw
-            }
 
-            $targetDc = $graphics.GetHdc()
-            try {
-                $srccopy = 0x00CC0020
-                if (-not [ReleaseSmokeNativeMethods]::BitBlt($targetDc, 0, 0, $bounds.Width, $bounds.Height, $sourceDc, $bounds.Left, $bounds.Top, $srccopy)) {
-                    throw "BitBlt failed while capturing the desktop."
-                }
+        $targetDc = $graphics.GetHdc()
+        try {
+            $srccopy = 0x00CC0020
+            if (-not [ReleaseSmokeNativeMethods]::BitBlt($targetDc, 0, 0, $bounds.Width, $bounds.Height, $sourceDc, $bounds.Left, $bounds.Top, $srccopy)) {
+                throw "BitBlt failed while capturing the desktop."
             }
-            finally {
-                $graphics.ReleaseHdc($targetDc)
-                [ReleaseSmokeNativeMethods]::ReleaseDC([IntPtr]::Zero, $sourceDc) | Out-Null
-            }
+        }
+        finally {
+            $graphics.ReleaseHdc($targetDc)
+            [ReleaseSmokeNativeMethods]::ReleaseDC([IntPtr]::Zero, $sourceDc) | Out-Null
         }
 
         $bitmap.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png)
