@@ -66,6 +66,43 @@ public static class ReleaseSmokeNativeMethods
         public int Bottom;
     }
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    public struct DEVMODE
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string dmDeviceName;
+        public short dmSpecVersion;
+        public short dmDriverVersion;
+        public short dmSize;
+        public short dmDriverExtra;
+        public int dmFields;
+        public int dmPositionX;
+        public int dmPositionY;
+        public int dmDisplayOrientation;
+        public int dmDisplayFixedOutput;
+        public short dmColor;
+        public short dmDuplex;
+        public short dmYResolution;
+        public short dmTTOption;
+        public short dmCollate;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string dmFormName;
+        public short dmLogPixels;
+        public int dmBitsPerPel;
+        public int dmPelsWidth;
+        public int dmPelsHeight;
+        public int dmDisplayFlags;
+        public int dmDisplayFrequency;
+        public int dmICMMethod;
+        public int dmICMIntent;
+        public int dmMediaType;
+        public int dmDitherType;
+        public int dmReserved1;
+        public int dmReserved2;
+        public int dmPanningWidth;
+        public int dmPanningHeight;
+    }
+
     [DllImport("user32.dll")]
     public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
 
@@ -92,6 +129,12 @@ public static class ReleaseSmokeNativeMethods
 
     [DllImport("gdi32.dll")]
     public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+    public static extern bool EnumDisplaySettings(string deviceName, int modeNum, ref DEVMODE devMode);
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+    public static extern int ChangeDisplaySettings(ref DEVMODE devMode, int flags);
 }
 '@
     }
@@ -100,6 +143,35 @@ public static class ReleaseSmokeNativeMethods
 
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
+}
+
+function Set-InteractiveDisplayResolution {
+    param(
+        [Parameter(Mandatory)]
+        [int] $Width,
+
+        [Parameter(Mandatory)]
+        [int] $Height
+    )
+
+    Initialize-ScreenshotSupport
+
+    $currentSettings = -1
+    $devMode = New-Object 'ReleaseSmokeNativeMethods+DEVMODE'
+    $devMode.dmSize = [System.Runtime.InteropServices.Marshal]::SizeOf([type] 'ReleaseSmokeNativeMethods+DEVMODE')
+
+    if (-not [ReleaseSmokeNativeMethods]::EnumDisplaySettings($null, $currentSettings, [ref] $devMode)) {
+        throw 'EnumDisplaySettings failed while reading the current RDP display mode.'
+    }
+
+    $devMode.dmPelsWidth = $Width
+    $devMode.dmPelsHeight = $Height
+    $devMode.dmFields = 0x180000
+
+    $result = [ReleaseSmokeNativeMethods]::ChangeDisplaySettings([ref] $devMode, 0)
+    if ($result -ne 0) {
+        throw "ChangeDisplaySettings failed while setting ${Width}x${Height}; result=$result."
+    }
 }
 
 function Get-PhysicalDesktopBounds {
@@ -137,6 +209,22 @@ function Get-PhysicalDesktopBounds {
     }
     finally {
         [ReleaseSmokeNativeMethods]::ReleaseDC([IntPtr]::Zero, $sourceDc) | Out-Null
+    }
+}
+
+function Get-DisplayMetrics {
+    Initialize-ScreenshotSupport
+
+    $physicalBounds = Get-PhysicalDesktopBounds
+    $virtualBounds = [System.Windows.Forms.SystemInformation]::VirtualScreen
+
+    [pscustomobject]@{
+        PhysicalWidth = $physicalBounds.Width
+        PhysicalHeight = $physicalBounds.Height
+        VirtualWidth = $virtualBounds.Width
+        VirtualHeight = $virtualBounds.Height
+        VirtualLeft = $virtualBounds.Left
+        VirtualTop = $virtualBounds.Top
     }
 }
 
@@ -269,6 +357,24 @@ function Save-WindowScreenshot {
 }
 
 New-Item -Path $ArtifactsDir -ItemType Directory -Force | Out-Null
+$targetDesktopWidth = 1920
+$targetDesktopHeight = 1080
+$displayBefore = Get-DisplayMetrics
+Set-InteractiveDisplayResolution -Width $targetDesktopWidth -Height $targetDesktopHeight
+Start-Sleep -Seconds 3
+$displayAfter = Get-DisplayMetrics
+
+if ($displayAfter.PhysicalWidth -ne $targetDesktopWidth -or $displayAfter.PhysicalHeight -ne $targetDesktopHeight) {
+    throw "RDP desktop is $($displayAfter.PhysicalWidth)x$($displayAfter.PhysicalHeight), expected ${targetDesktopWidth}x${targetDesktopHeight}."
+}
+
+[pscustomobject]@{
+    RequestedWidth = $targetDesktopWidth
+    RequestedHeight = $targetDesktopHeight
+    Before = $displayBefore
+    After = $displayAfter
+} | ConvertTo-Json -Depth 6 | Set-Content -Path (Join-Path $ArtifactsDir 'display-metrics.json') -Encoding utf8NoBOM
+
 $downloadsDir = Join-Path $ArtifactsDir 'downloads'
 New-Item -Path $downloadsDir -ItemType Directory -Force | Out-Null
 
