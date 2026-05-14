@@ -50,9 +50,6 @@ function Download-ReleaseAsset {
 }
 
 function Initialize-ScreenshotSupport {
-    Add-Type -AssemblyName System.Windows.Forms
-    Add-Type -AssemblyName System.Drawing
-
     if (-not ('ReleaseSmokeNativeMethods' -as [type])) {
         Add-Type -TypeDefinition @'
 using System;
@@ -89,9 +86,17 @@ public static class ReleaseSmokeNativeMethods
 
     [DllImport("user32.dll")]
     public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, uint nFlags);
+
+    [DllImport("user32.dll")]
+    public static extern bool SetProcessDPIAware();
 }
 '@
     }
+
+    [ReleaseSmokeNativeMethods]::SetProcessDPIAware() | Out-Null
+
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
 }
 
 function Wait-UniGetUIWindow {
