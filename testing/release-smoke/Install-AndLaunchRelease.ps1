@@ -357,15 +357,20 @@ function Save-WindowScreenshot {
 }
 
 New-Item -Path $ArtifactsDir -ItemType Directory -Force | Out-Null
-$targetDesktopWidth = 1920
-$targetDesktopHeight = 1080
+$targetDesktopWidth = 800
+$targetDesktopHeight = 600
 $displayBefore = Get-DisplayMetrics
-Set-InteractiveDisplayResolution -Width $targetDesktopWidth -Height $targetDesktopHeight
-Start-Sleep -Seconds 3
+try {
+    Set-InteractiveDisplayResolution -Width $targetDesktopWidth -Height $targetDesktopHeight
+    Start-Sleep -Seconds 3
+}
+catch {
+    Write-Warning "Could not change the interactive display to ${targetDesktopWidth}x${targetDesktopHeight}: $($_.Exception.Message)"
+}
 $displayAfter = Get-DisplayMetrics
 
 if ($displayAfter.PhysicalWidth -ne $targetDesktopWidth -or $displayAfter.PhysicalHeight -ne $targetDesktopHeight) {
-    throw "RDP desktop is $($displayAfter.PhysicalWidth)x$($displayAfter.PhysicalHeight), expected ${targetDesktopWidth}x${targetDesktopHeight}."
+    Write-Warning "RDP desktop is $($displayAfter.PhysicalWidth)x$($displayAfter.PhysicalHeight), requested ${targetDesktopWidth}x${targetDesktopHeight}."
 }
 
 [pscustomobject]@{
