@@ -88,8 +88,8 @@ $rdpFile = Join-Path $SecretsDir 'localhost.rdp'
     "ClearTextPassword:s:$Password"
     'enablecredsspsupport:i:0'
     'compression:i:0'
-    'desktopwidth:i:1280'
-    'desktopheight:i:720'
+    'desktopwidth:i:1920'
+    'desktopheight:i:1080'
     'audiomode:i:2'
     'redirectclipboard:i:0'
 ) | Set-Content -Path $rdpFile -Encoding ascii
