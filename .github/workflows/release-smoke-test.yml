@@ -1,0 +1,72 @@
+name: Release Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-repository:
+        description: 'GitHub repository to download the release from'
+        required: true
+        default: 'Devolutions/UniGetUI'
+      release-tag:
+        description: 'Release tag to test. Leave empty for the latest release.'
+        required: false
+        default: ''
+      installer-asset-name:
+        description: 'Installer asset name in the GitHub release'
+        required: true
+        default: 'UniGetUI.Installer.x64.exe'
+      max-stage:
+        description: 'Last smoke-test stage to run'
+        required: true
+        type: choice
+        default: 'install-launch'
+        options:
+          - rdp
+          - rdp-client
+          - remoting-server
+          - remote-command
+          - install-launch
+
+jobs:
+  release-smoke-test:
+    name: Windows release smoke test
+    runs-on: windows-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run release smoke test
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_REPOSITORY: ${{ inputs['release-repository'] }}
+          RELEASE_TAG: ${{ inputs['release-tag'] }}
+          INSTALLER_ASSET_NAME: ${{ inputs['installer-asset-name'] }}
+          MAX_STAGE: ${{ inputs['max-stage'] }}
+        run: |
+          .\testing\release-smoke\Invoke-ReleaseSmokeTest.ps1 `
+            -ReleaseRepository $env:RELEASE_REPOSITORY `
+            -ReleaseTag $env:RELEASE_TAG `
+            -InstallerAssetName $env:INSTALLER_ASSET_NAME `
+            -MaxStage $env:MAX_STAGE `
+            -ArtifactsDir '${{ github.workspace }}\artifacts\release-smoke'
+
+      - name: Cleanup release smoke test
+        if: always()
+        shell: pwsh
+        run: |
+          .\testing\release-smoke\Invoke-ReleaseSmokeTest.ps1 `
+            -CleanupOnly `
+            -ArtifactsDir '${{ github.workspace }}\artifacts\release-smoke'
+
+      - name: Upload release smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-smoke-test
+          path: artifacts\release-smoke
+          if-no-files-found: warn
