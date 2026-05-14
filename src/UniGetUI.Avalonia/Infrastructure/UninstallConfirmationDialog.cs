@@ -78,7 +78,7 @@ internal static class UninstallConfirmationDialog
                 Environment.NewLine,
                 packages
                     .OrderBy(package => package.Name, StringComparer.OrdinalIgnoreCase)
-                    .Select(package => "* " + package.Name));
+                    .Select(package => $"* {package.Name} ({package.VersionString})"));
 
             var packageListBlock = new TextBlock
             {

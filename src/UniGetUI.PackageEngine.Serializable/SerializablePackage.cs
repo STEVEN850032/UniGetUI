@@ -37,7 +37,10 @@ namespace UniGetUI.PackageEngine.Classes.Serializable
             this.Source = data[nameof(Source)]?.GetVal<string>() ?? "";
             this.ManagerName = data[nameof(ManagerName)]?.GetVal<string>() ?? "";
 
-            this.InstallationOptions = new(data[nameof(InstallationOptions)] ?? new JsonObject());
+            this.InstallationOptions =
+                data[nameof(InstallationOptions)] is { } installOptions
+                    ? new(installOptions)
+                    : new(new JsonObject());
             this.Updates = new(data[nameof(Updates)] ?? new JsonObject());
         }
 

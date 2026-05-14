@@ -164,7 +164,7 @@ public static partial class DialogHelper
         string pkgList = "";
         foreach (IPackage package in packages)
         {
-            pkgList += " ● " + package.Name + "\x0a";
+            pkgList += $" ● {package.Name} ({package.VersionString})\x0a";
         }
 
         TextBlock PackageListTextBlock = new()

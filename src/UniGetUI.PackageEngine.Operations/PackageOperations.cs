@@ -280,18 +280,9 @@ namespace UniGetUI.PackageEngine.Operations
             else if (role is OperationType.Uninstall && opts.PostUninstallCommand.Any())
                 l.Add(new(new PrePostOperation(opts.PostUninstallCommand), false));
 
-            if (role is OperationType.Update && opts.UninstallPreviousVersionsOnUpdate)
+            if (PackageVersionCleanupHelper.ShouldRunAutomaticCleanup(package, opts, role))
             {
-                var matches = InstalledPackagesLoader.Instance.Packages.Where(p =>
-                    p.IsEquivalentTo(package) && p.NormalizedVersion < package.NormalizedNewVersion
-                );
-                foreach (var match in matches)
-                {
-                    Logger.Info(
-                        $"Queuing {match} version {match.VersionString} for automatic uninstall after update..."
-                    );
-                    l.Add(new(new UninstallPackageOperation(match, opts.Copy()), false));
-                }
+                l.Add(new(new PackageVersionCleanupOperation(package, opts.Copy(), role), false));
             }
 
             return l;

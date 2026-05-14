@@ -56,6 +56,10 @@ internal sealed class PowerShellPkgOperationHelper : BasePkgOperationHelper
             if (options.Version != "")
                 parameters.AddRange(["-RequiredVersion", options.Version]);
         }
+        else if (operation is OperationType.Uninstall && package.VersionString.Any())
+        {
+            parameters.AddRange(["-RequiredVersion", package.VersionString]);
+        }
 
         parameters.AddRange(
             operation switch

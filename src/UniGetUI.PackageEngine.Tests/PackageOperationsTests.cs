@@ -1,9 +1,12 @@
 using System.Diagnostics;
 using System.Reflection;
+using UniGetUI.Core.Data;
+using UniGetUI.Core.SettingsEngine;
 using UniGetUI.Core.Tools;
 using UniGetUI.Interface.Enums;
 using UniGetUI.PackageEngine.Enums;
 using UniGetUI.PackageEngine.Interfaces;
+using UniGetUI.PackageEngine.Classes.Packages.Classes;
 using UniGetUI.PackageEngine.Operations;
 using UniGetUI.PackageEngine.PackageClasses;
 using UniGetUI.PackageEngine.PackageLoader;
@@ -19,8 +22,33 @@ namespace UniGetUI.PackageEngine.Tests;
 public sealed class OperationOrchestrationTestCollection;
 
 [Collection(nameof(OperationOrchestrationTestCollection))]
-public sealed class PackageOperationsTests
+public sealed class PackageOperationsTests : IDisposable
 {
+    private readonly string _testRoot = Path.Combine(
+        Path.GetTempPath(),
+        nameof(PackageOperationsTests),
+        Guid.NewGuid().ToString("N")
+    );
+
+    public PackageOperationsTests()
+    {
+        Directory.CreateDirectory(_testRoot);
+        CoreData.TEST_DataDirectoryOverride = Path.Combine(_testRoot, "Data");
+        Directory.CreateDirectory(CoreData.UniGetUIUserConfigurationDirectory);
+        Directory.CreateDirectory(CoreData.UniGetUIInstallationOptionsDirectory);
+        Settings.ResetSettings();
+    }
+
+    public void Dispose()
+    {
+        Settings.ResetSettings();
+        CoreData.TEST_DataDirectoryOverride = null;
+        if (Directory.Exists(_testRoot))
+        {
+            Directory.Delete(_testRoot, recursive: true);
+        }
+    }
+
     [Fact]
     public void RetryModesMutateInstallOptionsAndMetadata()
     {
@@ -83,9 +111,9 @@ public sealed class PackageOperationsTests
     }
 
     [Fact]
-    public async Task UpdateOperationBuildsPostOperationsForCommandAndPreviousVersions()
+    public async Task UpdateOperationBuildsPostOperationsForCommandAndPowerShellCleanup()
     {
-        var manager = CreateManager();
+        var manager = new PackageManagerBuilder().WithName("PowerShell7").Build();
         var package = new PackageBuilder()
             .WithManager(manager)
             .WithId("Contoso.Tool")
@@ -124,12 +152,202 @@ public sealed class PackageOperationsTests
             },
             inner =>
             {
-                var uninstall = Assert.IsType<UninstallPackageOperation>(inner.Operation);
+                var uninstall = Assert.IsType<PackageVersionCleanupOperation>(inner.Operation);
                 Assert.False(inner.MustSucceed);
-                Assert.Equal("2.0.0", uninstall.Package.VersionString);
             }
         );
         Assert.Contains("1.0.0 -> 3.0.0", operation.Metadata.OperationInformation);
+    }
+
+    [Fact]
+    public void InstallOperationBuildsPostOperationForPowerShellCleanup()
+    {
+        var manager = new PackageManagerBuilder().WithName("PowerShell").Build();
+        var package = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("3.0.0")
+            .Build();
+
+        using var operation = new InspectableInstallPackageOperation(package, new InstallOptions());
+        var postOperations = GetInnerOperations(operation, "PostOperations");
+
+        var postOperation = Assert.Single(postOperations);
+        Assert.IsType<PackageVersionCleanupOperation>(postOperation.Operation);
+        Assert.False(postOperation.MustSucceed);
+    }
+
+    [Fact]
+    public void CleanupAnchorUsesRequestedVersionOnlyForInstall()
+    {
+        var manager = new PackageManagerBuilder().WithName("PowerShell7").Build();
+        var package = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("1.0.0")
+            .WithNewVersion("2.0.0")
+            .Build();
+        var options = new InstallOptions { Version = "9.9.9" };
+
+        Assert.Equal(
+            "9.9.9",
+            PackageVersionCleanupHelper.GetCleanupAnchorVersion(
+                package,
+                options,
+                OperationType.Install
+            )
+        );
+        Assert.Equal(
+            "2.0.0",
+            PackageVersionCleanupHelper.GetCleanupAnchorVersion(
+                package,
+                options,
+                OperationType.Update
+            )
+        );
+    }
+
+    [Fact]
+    public void ManualCleanupTargetsKeepSelectedNewestAndPreservedVersions()
+    {
+        var manager = new PackageManagerBuilder().WithName("PowerShell7").Build();
+        var selectedPackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("1.0.0")
+            .Build();
+        var preservedPackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("2.0.0")
+            .Build();
+        var newestPackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("3.0.0")
+            .Build();
+        var removablePackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("0.9.0")
+            .Build();
+        PreservedPackageVersionsDatabase.Add(preservedPackage);
+
+        var targets = PackageVersionCleanupHelper.GetManualCleanupTargets(
+            selectedPackage,
+            [selectedPackage, preservedPackage, newestPackage, removablePackage]
+        );
+
+        var target = Assert.Single(targets);
+        Assert.Equal("0.9.0", target.VersionString);
+    }
+
+    [Fact]
+    public void AutomaticCleanupTargetsOnlyOlderNonPreservedVersions()
+    {
+        var manager = new PackageManagerBuilder().WithName("PowerShell7").Build();
+        var package = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("2.0.0")
+            .WithNewVersion("3.0.0")
+            .WithOptions(new OverridenInstallationOptions(scope: PackageScope.User))
+            .Build();
+        var preservedPackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("1.0.0")
+            .WithOptions(new OverridenInstallationOptions(scope: PackageScope.User))
+            .Build();
+        var removablePackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("2.0.0")
+            .WithOptions(new OverridenInstallationOptions(scope: PackageScope.User))
+            .Build();
+        var latestPackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("3.0.0")
+            .WithOptions(new OverridenInstallationOptions(scope: PackageScope.User))
+            .Build();
+        PreservedPackageVersionsDatabase.Add(preservedPackage);
+
+        var targets = PackageVersionCleanupHelper.GetAutomaticCleanupTargets(
+            package,
+            [preservedPackage, removablePackage, latestPackage],
+            "3.0.0",
+            new InstallOptions()
+        );
+
+        var target = Assert.Single(targets);
+        Assert.Equal("2.0.0", target.VersionString);
+    }
+
+    [Fact]
+    public void AutomaticCleanupTargetsKeepPowerShell7CleanupInRequestedScope()
+    {
+        var manager = new PackageManagerBuilder().WithName("PowerShell7").Build();
+        var package = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("3.0.0")
+            .Build();
+        var currentUserPackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("1.0.0")
+            .WithOptions(new OverridenInstallationOptions(scope: PackageScope.User))
+            .Build();
+        var allUsersPackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("1.5.0")
+            .WithOptions(new OverridenInstallationOptions(scope: PackageScope.Machine))
+            .Build();
+
+        var targets = PackageVersionCleanupHelper.GetAutomaticCleanupTargets(
+            package,
+            [currentUserPackage, allUsersPackage],
+            "3.0.0",
+            new InstallOptions { InstallationScope = PackageScope.User }
+        );
+
+        var target = Assert.Single(targets);
+        Assert.Equal(PackageScope.User, target.OverridenOptions.Scope);
+    }
+
+    [Fact]
+    public void ManualCleanupTargetsKeepPowerShell7CleanupInSelectedScope()
+    {
+        var manager = new PackageManagerBuilder().WithName("PowerShell7").Build();
+        var selectedPackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("2.0.0")
+            .WithOptions(new OverridenInstallationOptions(scope: PackageScope.User))
+            .Build();
+        var currentUserPackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("1.0.0")
+            .WithOptions(new OverridenInstallationOptions(scope: PackageScope.User))
+            .Build();
+        var allUsersPackage = new PackageBuilder()
+            .WithManager(manager)
+            .WithId("Contoso.Tool")
+            .WithVersion("1.5.0")
+            .WithOptions(new OverridenInstallationOptions(scope: PackageScope.Machine))
+            .Build();
+
+        var targets = PackageVersionCleanupHelper.GetManualCleanupTargets(
+            selectedPackage,
+            [selectedPackage, currentUserPackage, allUsersPackage]
+        );
+
+        var target = Assert.Single(targets);
+        Assert.Equal(PackageScope.User, target.OverridenOptions.Scope);
+        Assert.Equal("1.0.0", target.VersionString);
     }
 
     [Fact]

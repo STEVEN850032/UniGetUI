@@ -40,6 +40,10 @@ internal sealed class PowerShell7PkgOperationHelper : BasePkgOperationHelper
         else if (operation is OperationType.Uninstall)
         {
             parameters.AddRange(["-Version", package.VersionString]);
+            if (package.OverridenOptions.Scope is PackageScope.Global)
+                parameters.AddRange(["-Scope", "AllUsers"]);
+            else if (package.OverridenOptions.Scope is PackageScope.Local)
+                parameters.AddRange(["-Scope", "CurrentUser"]);
         }
 
         if (operation is not OperationType.Uninstall)

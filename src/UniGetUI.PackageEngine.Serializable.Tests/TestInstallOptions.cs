@@ -84,7 +84,7 @@ public class TestInstallOptions
     }
 
     [Theory]
-    [InlineData("{}", false, false, "", "", "", "", "", "", false, false, false, "", false)]
+    [InlineData("{}", false, false, "", "", "", "", "", "", false, false, false, "", false, true)]
     [InlineData(
         """
             {
@@ -110,6 +110,7 @@ public class TestInstallOptions
         false,
         false,
         "",
+        true,
         true
     )]
     [InlineData(
@@ -137,6 +138,7 @@ public class TestInstallOptions
         false,
         true,
         "heyheyhey",
+        true,
         true
     )]
     public void FromJson(
@@ -153,7 +155,8 @@ public class TestInstallOptions
         bool admin,
         bool skipMin,
         string ver,
-        bool mod
+        bool overrides,
+        bool differs
     )
     {
         Assert.NotEmpty(JSON);
@@ -163,8 +166,8 @@ public class TestInstallOptions
 
         var list = new List<string>() { arg1, arg2, arg3 }.Where(x => x.Any());
 
-        Assert.Equal(mod, o2.OverridesNextLevelOpts);
-        Assert.Equal(mod, o2.DiffersFromDefault());
+        Assert.Equal(overrides, o2.OverridesNextLevelOpts);
+        Assert.Equal(differs, o2.DiffersFromDefault());
         Assert.Equal(hash, o2.SkipHashCheck);
         Assert.Equal(arch, o2.Architecture);
         Assert.Equal(installLoc, o2.CustomInstallLocation);
@@ -186,6 +189,36 @@ public class TestInstallOptions
         Assert.Equal(admin, o2.RunAsAdministrator);
         Assert.Equal(skipMin, o2.SkipMinorUpdates);
         Assert.Equal(ver, o2.Version);
+    }
+
+    [Fact]
+    public void DefaultOptionsEnablePreviousVersionCleanup()
+    {
+        var options = new InstallOptions();
+
+        Assert.True(options.UninstallPreviousVersionsOnUpdate);
+    }
+
+    [Fact]
+    public void MissingPreviousVersionCleanupOptionKeepsLegacyDisabledBehavior()
+    {
+        var options = new InstallOptions(JsonNode.Parse("{}")!);
+
+        Assert.False(options.UninstallPreviousVersionsOnUpdate);
+        Assert.True(options.DiffersFromDefault());
+        Assert.False(options.OverridesNextLevelOpts);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void PreviousVersionCleanupOptionIsAlwaysSerialized(bool enabled)
+    {
+        var options = new InstallOptions { UninstallPreviousVersionsOnUpdate = enabled };
+        var json = options.AsJsonNode();
+
+        Assert.True(json.ContainsKey("UninstallPreviousVersionsOnUpdate"));
+        Assert.Equal(enabled, json["UninstallPreviousVersionsOnUpdate"]?.GetValue<bool>());
     }
 
     [Theory]

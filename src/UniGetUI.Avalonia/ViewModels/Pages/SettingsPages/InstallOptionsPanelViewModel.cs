@@ -68,7 +68,7 @@ public partial class InstallOptionsPanelViewModel : ViewModelBase
     public string InteractiveLabel { get; } = CoreTools.Translate("Interactive installation");
     public string SkipHashLabel { get; } = CoreTools.Translate("Skip hash check");
     public string PreReleaseLabel { get; } = CoreTools.Translate("Allow pre-release versions");
-    public string UninstallPrevLabel { get; } = CoreTools.Translate("Uninstall previous versions when updated");
+    public string UninstallPrevLabel { get; } = CoreTools.Translate("Uninstall previous versions after install or update");
     public string ArchLabel { get; } = CoreTools.Translate("Architecture to install:");
     public string ScopeLabel { get; } = CoreTools.Translate("Installation scope:");
     public string LocationLabel { get; } = CoreTools.Translate("Install location:");

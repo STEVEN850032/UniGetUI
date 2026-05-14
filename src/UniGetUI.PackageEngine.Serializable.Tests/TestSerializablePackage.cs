@@ -116,10 +116,23 @@ public class TestSerializablePackage
         Assert.Equal(manager, o2.ManagerName);
         Assert.Equal(source, o2.Source);
         Assert.Equal(version, o2.Version);
-        TestInstallOptions.AssertAreEqual(
-            new() { SkipHashCheck = skipHash },
-            o2.InstallationOptions
-        );
+        var expectedInstallOptions = new InstallOptions() { SkipHashCheck = skipHash };
+        if (
+            jsonContent[nameof(SerializablePackage.InstallationOptions)] is not JsonObject installOptions
+            || !installOptions.ContainsKey("UninstallPreviousVersionsOnUpdate")
+        )
+        {
+            expectedInstallOptions.UninstallPreviousVersionsOnUpdate = false;
+        }
+
+        if (jsonContent[nameof(SerializablePackage.InstallationOptions)]?[
+                nameof(InstallOptions.OverridesNextLevelOpts)
+            ] is { } overridesNextLevelOpts)
+        {
+            expectedInstallOptions.OverridesNextLevelOpts = overridesNextLevelOpts.GetValue<bool>();
+        }
+
+        TestInstallOptions.AssertAreEqual(expectedInstallOptions, o2.InstallationOptions);
         TestSerializableUpdatesOptions.AreEqual(new() { IgnoredVersion = ignoredVer }, o2.Updates);
     }
 

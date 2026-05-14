@@ -9,6 +9,7 @@ using UniGetUI.Avalonia.Views;
 using UniGetUI.Core.Logging;
 using UniGetUI.Core.SettingsEngine;
 using UniGetUI.Core.Tools;
+using UniGetUI.PackageEngine.Classes.Packages.Classes;
 using UniGetUI.Interface.Telemetry;
 using UniGetUI.PackageEngine.Classes.Manager.Classes;
 using UniGetUI.PackageEngine.Enums;
@@ -32,6 +33,8 @@ public class InstalledPackagesPage : AbstractPackagesPage
     private MenuItem? _menuDetails;
     private MenuItem? _menuOpenInstallLocation;
     private MenuItem? _menuDownloadInstaller;
+    private MenuItem? _menuCleanupOtherVersions;
+    private MenuItem? _menuPreserveVersion;
 
     private static bool _hasBackedUp;
 
@@ -201,6 +204,20 @@ public class InstalledPackagesPage : AbstractPackagesPage
         };
         _menuIgnoreUpdates.Click += (_, _) => _ = ToggleIgnoreUpdatesAsync(SelectedItem);
 
+        _menuCleanupOtherVersions = new MenuItem
+        {
+            Header = CoreTools.AutoTranslated("Uninstall other versions of this package"),
+            Icon = LoadMenuIcon("delete"),
+        };
+        _menuCleanupOtherVersions.Click += (_, _) => _ = CleanupOtherPackageVersionsAsync(SelectedItem);
+
+        _menuPreserveVersion = new MenuItem
+        {
+            Header = CoreTools.AutoTranslated("Preserve this package version"),
+            Icon = LoadMenuIcon("pin"),
+        };
+        _menuPreserveVersion.Click += (_, _) => _ = TogglePreservedPackageVersionAsync(SelectedItem);
+
         _menuDetails = new MenuItem
         {
             Header = CoreTools.AutoTranslated("Package details"),
@@ -224,6 +241,8 @@ public class InstalledPackagesPage : AbstractPackagesPage
         menu.Items.Add(_menuUninstallThenReinstall);
         menu.Items.Add(new Separator());
         menu.Items.Add(_menuIgnoreUpdates);
+        menu.Items.Add(_menuCleanupOtherVersions);
+        menu.Items.Add(_menuPreserveVersion);
         menu.Items.Add(new Separator());
         menu.Items.Add(_menuDetails);
 
@@ -236,7 +255,8 @@ public class InstalledPackagesPage : AbstractPackagesPage
             || _menuInstallationOptions is null || _menuReinstall is null
             || _menuUninstallThenReinstall is null || _menuIgnoreUpdates is null
             || _menuDetails is null
-            || _menuOpenInstallLocation is null || _menuDownloadInstaller is null)
+            || _menuOpenInstallLocation is null || _menuDownloadInstaller is null
+            || _menuCleanupOtherVersions is null || _menuPreserveVersion is null)
         {
             Logger.Warn("Context menu items are null on InstalledPackagesPage");
             return;
@@ -253,11 +273,14 @@ public class InstalledPackagesPage : AbstractPackagesPage
         _menuReinstall.IsEnabled = !isLocal;
         _menuUninstallThenReinstall.IsEnabled = !isLocal;
         _menuDetails.IsEnabled = !isLocal;
+        _menuCleanupOtherVersions.IsEnabled = false;
+        _menuPreserveVersion.IsEnabled = false;
         _menuOpenInstallLocation.IsEnabled =
             package.Manager.DetailsHelper.GetInstallLocation(package) is not null;
 
         // Async ignore-state toggle label — fire and forget is fine here
         _ = UpdateIgnoreMenuItemAsync(package);
+        UpdateVersionCleanupMenuItems(package);
     }
 
     // ─── Abstract action overrides ────────────────────────────────────────────
@@ -354,6 +377,76 @@ public class InstalledPackagesPage : AbstractPackagesPage
             AvaloniaOperationRegistry.Add(op);
             _ = op.MainThread();
         }
+    }
+
+    private static async Task CleanupOtherPackageVersionsAsync(IPackage? package)
+    {
+        if (package is null || GetMainWindow() is not { } owner) return;
+
+        var cleanupTargets = PackageVersionCleanupHelper.GetManualCleanupTargets(
+            package,
+            InstalledPackagesLoader.Instance.GetEquivalentPackages(package)
+        );
+        if (cleanupTargets.Count == 0) return;
+
+        if (!await UninstallConfirmationDialog.ConfirmAsync(owner, cleanupTargets))
+        {
+            return;
+        }
+
+        await LaunchUninstall(cleanupTargets);
+    }
+
+    private static async Task TogglePreservedPackageVersionAsync(IPackage? package)
+    {
+        if (
+            package is null
+            || !PackageVersionCleanupHelper.SupportsVersionCleanup(package)
+            || !PackageVersionCleanupHelper.HasKnownVersion(package)
+        )
+        {
+            return;
+        }
+
+        await Task.Run(() =>
+        {
+            if (PreservedPackageVersionsDatabase.IsVersionPreserved(package))
+            {
+                PreservedPackageVersionsDatabase.Remove(package);
+            }
+            else
+            {
+                PreservedPackageVersionsDatabase.Add(package);
+            }
+        });
+    }
+
+    private void UpdateVersionCleanupMenuItems(IPackage package)
+    {
+        if (_menuCleanupOtherVersions is null || _menuPreserveVersion is null)
+        {
+            return;
+        }
+
+        bool canCleanupPackageVersions =
+            !package.Source.IsVirtualManager
+            && PackageVersionCleanupHelper.SupportsVersionCleanup(package)
+            && PackageVersionCleanupHelper.HasKnownVersion(package);
+        _menuPreserveVersion.IsEnabled = canCleanupPackageVersions;
+        if (!canCleanupPackageVersions)
+        {
+            return;
+        }
+
+        _menuPreserveVersion.Header = PreservedPackageVersionsDatabase.IsVersionPreserved(package)
+            ? CoreTools.Translate("Do not preserve this package version")
+            : CoreTools.Translate("Preserve this package version");
+        _menuCleanupOtherVersions.IsEnabled = PackageVersionCleanupHelper
+            .GetManualCleanupTargets(
+                package,
+                InstalledPackagesLoader.Instance.GetEquivalentPackages(package)
+            )
+            .Count > 0;
     }
 
     private static async Task LaunchReinstall(IPackage? package)

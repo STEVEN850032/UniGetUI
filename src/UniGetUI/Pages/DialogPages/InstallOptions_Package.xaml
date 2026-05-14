@@ -216,10 +216,10 @@
                           Text="Skip hash check"
                         />
                       </CheckBox>
-                      <CheckBox Name="UninstallPreviousOnUpdate">
+                       <CheckBox Name="UninstallPreviousOnUpdate">
                         <widgets:TranslatedTextBlock
                           HorizontalAlignment="Stretch"
-                          Text="Uninstall previous versions when updated"
+                          Text="Uninstall previous versions after install or update"
                         />
                       </CheckBox>
                     </controls:WrapPanel>

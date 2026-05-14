@@ -80,8 +80,6 @@ namespace UniGetUI.PackageEngine.Managers.PowerShell7Manager
 
         protected override IReadOnlyList<Package> _getInstalledPackages_UnSafe()
         {
-            List<Package> Packages = [];
-
             using Process p = new()
             {
                 StartInfo = new ProcessStartInfo
@@ -109,50 +107,66 @@ namespace UniGetUI.PackageEngine.Managers.PowerShell7Manager
 
             p.Start();
             string? line;
-            bool DashesPassed = false;
-            string currentScope = "AllUsers";
+            List<string> outputLines = [];
             while ((line = p.StandardOutput.ReadLine()) is not null)
             {
                 logger.AddToStdOut(line);
-                if (line.StartsWith("##SCOPE:"))
-                {
-                    currentScope = line.Trim('#').Split(':')[1];
-                    DashesPassed = false;
-                    continue;
-                }
-
-                if (!DashesPassed)
-                {
-                    if (line.Contains("-----"))
-                        DashesPassed = true;
-                }
-                else
-                {
-                    string[] elements = Regex.Replace(line, " {2,}", " ").Split(' ');
-                    if (elements.Length < 3)
-                        continue;
-
-                    for (int i = 0; i < elements.Length; i++)
-                        elements[i] = elements[i].Trim();
-
-                    Packages.Add(
-                        new Package(
-                            CoreTools.FormatAsName(elements[0]),
-                            elements[0],
-                            elements[1],
-                            SourcesHelper.Factory.GetSourceOrDefault(elements[2]),
-                            this,
-                            new(currentScope == "CurrentUser" ? PackageScope.User : PackageScope.Machine)
-                        )
-                    );
-                }
+                outputLines.Add(line);
             }
 
             logger.AddToStdErr(p.StandardError.ReadToEnd());
             p.WaitForExit();
             logger.Close(p.ExitCode);
 
-            return Packages;
+            return ParseInstalledPackages(outputLines, this);
+        }
+
+        internal static IReadOnlyList<Package> ParseInstalledPackages(
+            IEnumerable<string> outputLines,
+            PowerShell7 manager
+        )
+        {
+            List<Package> packages = [];
+            bool dashesPassed = false;
+            string currentScope = "AllUsers";
+
+            foreach (string line in outputLines)
+            {
+                if (line.StartsWith("##SCOPE:"))
+                {
+                    currentScope = line.Trim('#').Split(':')[1];
+                    dashesPassed = false;
+                    continue;
+                }
+
+                if (!dashesPassed)
+                {
+                    if (line.Contains("-----"))
+                        dashesPassed = true;
+
+                    continue;
+                }
+
+                string[] elements = Regex.Replace(line, " {2,}", " ").Split(' ');
+                if (elements.Length < 3)
+                    continue;
+
+                for (int i = 0; i < elements.Length; i++)
+                    elements[i] = elements[i].Trim();
+
+                packages.Add(
+                    new Package(
+                        CoreTools.FormatAsName(elements[0]),
+                        elements[0],
+                        elements[1],
+                        manager.SourcesHelper.Factory.GetSourceOrDefault(elements[2]),
+                        manager,
+                        new(currentScope == "CurrentUser" ? PackageScope.User : PackageScope.Machine)
+                    )
+                );
+            }
+
+            return packages;
         }
 
         protected override bool UseSubstringSearch => true;

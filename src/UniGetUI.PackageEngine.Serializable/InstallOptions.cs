@@ -46,7 +46,7 @@ namespace UniGetUI.PackageEngine.Serializable
             { PRERELEASE, false },
             { SKIP_MINOR, false },
             { REMOVE_DATA_UNINST, false },
-            { CLEAR_PREV_VER, false },
+            { CLEAR_PREV_VER, true },
             { ABORT_PRE_INST_FAIL, true },
             { ABORT_PRE_UPD_FAIL, true },
             { ABORT_PRE_UNINST_FAIL, true },
@@ -229,8 +229,21 @@ namespace UniGetUI.PackageEngine.Serializable
 
         public override void LoadFromJson(JsonNode data)
         {
+            bool hasPreviousVersionCleanupValue =
+                (data as JsonObject)?.ContainsKey(CLEAR_PREV_VER) ?? false;
+
             foreach (var (boolKey, defValue) in _defaultBoolValues)
+            {
+                if (boolKey is CLEAR_PREV_VER)
+                {
+                    // Before automatic PowerShell cleanup defaulted on, absent values meant "off".
+                    // Preserve that meaning for existing saved options while fresh options keep the new default.
+                    _boolVal[boolKey] = data[boolKey]?.GetVal<bool>() ?? false;
+                    continue;
+                }
+
                 _boolVal[boolKey] = data[boolKey]?.GetVal<bool>() ?? defValue;
+            }
 
             foreach (var stringKey in _stringKeys)
                 _strVal[stringKey] = data[stringKey]?.GetVal<string>() ?? "";
@@ -255,7 +268,8 @@ namespace UniGetUI.PackageEngine.Serializable
             // on whether the current settings instances are different from the default values.
             // This entry shall be checked the last one, to ensure all other properties are set
             this.OverridesNextLevelOpts =
-                data[nameof(OverridesNextLevelOpts)]?.GetValue<bool>() ?? DiffersFromDefault();
+                data[nameof(OverridesNextLevelOpts)]?.GetValue<bool>()
+                ?? DiffersFromDefaultIgnoringMigratedCleanup(!hasPreviousVersionCleanupValue);
         }
 
         public override JsonObject AsJsonNode()
@@ -269,7 +283,7 @@ namespace UniGetUI.PackageEngine.Serializable
             foreach (var (boolKey, defValue) in _defaultBoolValues)
             {
                 bool currentValue = _boolVal[boolKey];
-                if (currentValue != defValue)
+                if (currentValue != defValue || boolKey is CLEAR_PREV_VER)
                     obj.Add(boolKey, currentValue);
             }
 
@@ -308,9 +322,19 @@ namespace UniGetUI.PackageEngine.Serializable
 
         public bool DiffersFromDefault()
         {
+            return DiffersFromDefaultIgnoringMigratedCleanup(ignoreMigratedCleanup: false);
+        }
+
+        private bool DiffersFromDefaultIgnoringMigratedCleanup(bool ignoreMigratedCleanup)
+        {
             foreach (var (boolKey, defValue) in _defaultBoolValues)
+            {
+                if (ignoreMigratedCleanup && boolKey is CLEAR_PREV_VER)
+                    continue;
+
                 if (_boolVal[boolKey] != defValue)
                     return true;
+            }
 
             foreach (var stringKey in _stringKeys)
                 if (_strVal[stringKey].Any())

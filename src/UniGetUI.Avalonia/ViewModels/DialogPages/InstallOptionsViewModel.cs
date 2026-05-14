@@ -69,7 +69,7 @@ public partial class InstallOptionsViewModel : ObservableObject
     public string AdminCheckBox_Content { get; } = CoreTools.Translate("Run as admin");
     public string InteractiveCheckBox_Content { get; } = CoreTools.Translate("Interactive installation");
     public string SkipHashCheckBox_Content { get; } = CoreTools.Translate("Skip hash check");
-    public string UninstallPrevCheckBox_Content { get; } = CoreTools.Translate("Uninstall previous versions when updated");
+    public string UninstallPrevCheckBox_Content { get; } = CoreTools.Translate("Uninstall previous versions after install or update");
     public string SkipMinorCheckBox_Content { get; } = CoreTools.Translate("Skip minor updates for this package");
     public string AutoUpdateCheckBox_Content { get; } = CoreTools.Translate("Automatically update this package");
 

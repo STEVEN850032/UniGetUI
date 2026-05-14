@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Media;
 using UniGetUI.Core.Data;
 using UniGetUI.Core.Logging;
 using UniGetUI.Core.SettingsEngine;
@@ -9,9 +10,11 @@ using UniGetUI.Interface.Enums;
 using UniGetUI.Interface.Telemetry;
 using UniGetUI.Interface.Widgets;
 using UniGetUI.PackageEngine;
+using UniGetUI.PackageEngine.Classes.Packages.Classes;
 using UniGetUI.PackageEngine.Enums;
 using UniGetUI.PackageEngine.Interfaces;
 using UniGetUI.PackageEngine.Managers.WingetManager;
+using UniGetUI.PackageEngine.Operations;
 using UniGetUI.PackageEngine.PackageLoader;
 using UniGetUI.Pages.DialogPages;
 using UniGetUI.Services;
@@ -33,6 +36,8 @@ namespace UniGetUI.Interface.SoftwarePages
         private BetterMenuItem? MenuPackageDetails;
         private BetterMenuItem? MenuOpenInstallLocation;
         private BetterMenuItem? MenuDownloadInstaller;
+        private BetterMenuItem? MenuCleanupOtherVersions;
+        private BetterMenuItem? MenuPreserveVersion;
 
         public InstalledPackagesPage()
             : base(
@@ -164,6 +169,22 @@ namespace UniGetUI.Interface.SoftwarePages
             };
             MenuIgnoreUpdates.Click += MenuIgnorePackage_Invoked;
             menu.Items.Add(MenuIgnoreUpdates);
+
+            MenuCleanupOtherVersions = new()
+            {
+                Text = CoreTools.AutoTranslated("Uninstall other versions of this package"),
+                IconName = IconType.Delete,
+            };
+            MenuCleanupOtherVersions.Click += (_, _) => _ = CleanupOtherPackageVersions();
+            menu.Items.Add(MenuCleanupOtherVersions);
+
+            MenuPreserveVersion = new()
+            {
+                Text = CoreTools.AutoTranslated("Preserve this package version"),
+                IconName = IconType.Pin_Filled,
+            };
+            MenuPreserveVersion.Click += (_, _) => _ = TogglePreservedPackageVersion();
+            menu.Items.Add(MenuPreserveVersion);
 
             menu.Items.Add(new MenuFlyoutSeparator());
 
@@ -340,6 +361,8 @@ namespace UniGetUI.Interface.SoftwarePages
                 || MenuPackageDetails is null
                 || MenuOpenInstallLocation is null
                 || MenuDownloadInstaller is null
+                || MenuCleanupOtherVersions is null
+                || MenuPreserveVersion is null
             )
             {
                 Logger.Error("Menu items are null on InstalledPackagesTab");
@@ -360,6 +383,8 @@ namespace UniGetUI.Interface.SoftwarePages
             MenuDownloadInstaller.IsEnabled =
                 !IS_LOCAL && package.Manager.Capabilities.CanDownloadInstaller;
             ;
+            MenuCleanupOtherVersions.IsEnabled = false;
+            MenuPreserveVersion.IsEnabled = false;
 
             MenuOpenInstallLocation.IsEnabled =
                 package.Manager.DetailsHelper.GetInstallLocation(package) is not null;
@@ -378,7 +403,126 @@ namespace UniGetUI.Interface.SoftwarePages
                     MenuIgnoreUpdates.Icon = new FontIcon { Glyph = "\uE718" };
                 }
                 MenuIgnoreUpdates.IsEnabled = true;
+
+                bool canCleanupPackageVersions =
+                    PackageVersionCleanupHelper.SupportsVersionCleanup(package)
+                    && PackageVersionCleanupHelper.HasKnownVersion(package);
+                MenuPreserveVersion.IsEnabled = canCleanupPackageVersions;
+                if (canCleanupPackageVersions)
+                {
+                    MenuPreserveVersion.Text =
+                            PreservedPackageVersionsDatabase.IsVersionPreserved(package)
+                            ? CoreTools.Translate("Do not preserve this package version")
+                            : CoreTools.Translate("Preserve this package version");
+                    MenuCleanupOtherVersions.IsEnabled = PackageVersionCleanupHelper
+                        .GetManualCleanupTargets(
+                            package,
+                            InstalledPackagesLoader.Instance.GetEquivalentPackages(package)
+                        )
+                        .Count > 0;
+                }
             }
+        }
+
+        private async Task CleanupOtherPackageVersions()
+        {
+            if (SelectedItem is null)
+            {
+                return;
+            }
+
+            var cleanupTargets = PackageVersionCleanupHelper.GetManualCleanupTargets(
+                SelectedItem,
+                InstalledPackagesLoader.Instance.GetEquivalentPackages(SelectedItem)
+            );
+            if (cleanupTargets.Count == 0)
+            {
+                return;
+            }
+
+            if (!await ConfirmPackageVersionCleanup(SelectedItem, cleanupTargets))
+            {
+                return;
+            }
+
+            await MainApp.Operations.Uninstall(cleanupTargets);
+        }
+
+        private async Task TogglePreservedPackageVersion()
+        {
+            var package = SelectedItem;
+            if (
+                package is null
+                || !PackageVersionCleanupHelper.SupportsVersionCleanup(package)
+                || !PackageVersionCleanupHelper.HasKnownVersion(package)
+            )
+            {
+                return;
+            }
+
+            await Task.Run(() =>
+            {
+                if (PreservedPackageVersionsDatabase.IsVersionPreserved(package))
+                {
+                    PreservedPackageVersionsDatabase.Remove(package);
+                }
+                else
+                {
+                    PreservedPackageVersionsDatabase.Add(package);
+                }
+            });
+        }
+
+        private static async Task<bool> ConfirmPackageVersionCleanup(
+            IPackage selectedPackage,
+            IReadOnlyList<IPackage> cleanupTargets
+        )
+        {
+            ContentDialog dialog = DialogHelper.DialogFactory.Create();
+            dialog.Title = CoreTools.Translate("Are you sure?");
+            dialog.PrimaryButtonText = CoreTools.Translate("Yes");
+            dialog.SecondaryButtonText = CoreTools.Translate("No");
+            dialog.DefaultButton = ContentDialogButton.Secondary;
+
+            StackPanel panel = new();
+            panel.Children.Add(
+                new TextBlock
+                {
+                    Text = CoreTools.Translate(
+                        "UniGetUI will uninstall the following versions of {0}:",
+                        selectedPackage.Name
+                    ),
+                    Margin = new Thickness(0, 0, 0, 5),
+                    TextWrapping = TextWrapping.Wrap,
+                }
+            );
+
+            string packageList = "";
+            foreach (IPackage package in cleanupTargets)
+            {
+                packageList += $" ● {package.VersionString} ({package.Source.Name})\x0a";
+            }
+
+            panel.Children.Add(
+                new ScrollView
+                {
+                    Content = new TextBlock { FontFamily = new FontFamily("Consolas"), Text = packageList },
+                    MaxHeight = 200,
+                }
+            );
+            panel.Children.Add(
+                new TextBlock
+                {
+                    Text = CoreTools.Translate(
+                        "Preserved versions and the newest installed version will not be removed."
+                    ),
+                    Margin = new Thickness(0, 8, 0, 0),
+                    TextWrapping = TextWrapping.Wrap,
+                }
+            );
+
+            dialog.Content = panel;
+            return await DialogHelper.ShowDialogAsync(dialog) is ContentDialogResult.Primary;
         }
 
         private void ExportSelection_Click(object sender, RoutedEventArgs e) =>

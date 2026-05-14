@@ -29,6 +29,7 @@ namespace UniGetUI.PackageEngine.Managers.PowerShellManager
                 SupportsCustomSources = true,
                 SupportsPreRelease = true,
                 SupportsCustomPackageIcons = true,
+                CanUninstallPreviousVersionsAfterUpdate = true,
                 Sources = new SourceCapabilities
                 {
                     KnowsPackageCount = false,
@@ -84,7 +85,7 @@ namespace UniGetUI.PackageEngine.Managers.PowerShellManager
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = Status.ExecutablePath,
-                    Arguments = Status.ExecutableCallArgs + " Get-InstalledModule",
+                    Arguments = Status.ExecutableCallArgs + " Get-InstalledModule -AllVersions",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     RedirectStandardInput = true,

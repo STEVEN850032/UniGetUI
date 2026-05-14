@@ -28,7 +28,7 @@ public sealed partial class InstallOptions_Manager : UserControl
         InteractiveCheckBox.Content = CoreTools.Translate("Interactive installation");
         HashCheckBox.Content = CoreTools.Translate("Skip hash check");
         UninstallPreviousVerOnUpdate.Content = CoreTools.Translate(
-            "Uninstall previous versions when updated"
+            "Uninstall previous versions after install or update"
         );
         PreReleaseCheckBox.Content = CoreTools.Translate("Allow pre-release versions");
         ArchLabel.Text = CoreTools.Translate("Architecture to install:");
