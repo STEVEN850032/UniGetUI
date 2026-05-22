@@ -4,6 +4,7 @@ using UniGetUI.Core.Logging;
 using UniGetUI.Core.SettingsEngine;
 using UniGetUI.Core.Tools;
 using UniGetUI.Interface.Enums;
+using UniGetUI.PackageEngine.AgentBroker;
 using UniGetUI.PackageEngine.Classes.Packages.Classes;
 using UniGetUI.PackageEngine.Enums;
 using UniGetUI.PackageEngine.Interfaces;
@@ -146,6 +147,100 @@ namespace UniGetUI.PackageEngine.Operations
                 (Options.SkipHashCheck && Role is not OperationType.Uninstall),
                 Package.OverridenOptions.Scope ?? Options.InstallationScope
             );
+        }
+
+        /// <summary>
+        /// Override to intercept operations and route through the Devolutions Agent broker
+        /// when the UseAgentBroker setting is enabled and the manager supports it (WinGet only for now).
+        /// Falls back to process-based execution otherwise.
+        /// </summary>
+        protected override async Task<OperationVeredict> PerformOperation()
+        {
+            if (!ShouldUseAgentBroker())
+            {
+                return await base.PerformOperation();
+            }
+
+            return await PerformBrokerOperation();
+        }
+
+        /// <summary>
+        /// Determines whether this operation should be routed through the agent broker.
+        /// </summary>
+        private bool ShouldUseAgentBroker()
+        {
+            // NOTE: Change this condition to enable agent broker by default when ready.
+            // Currently opt-in via settings.
+            if (!Settings.Get(Settings.K.UseAgentBroker))
+            {
+                return false;
+            }
+
+            // Only WinGet is supported in this iteration.
+            if (!IsWinGetManager(Package.Manager))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Perform the package operation through the Devolutions Agent broker.
+        /// Sends the request over named pipe and interprets the response.
+        /// </summary>
+        private async Task<OperationVeredict> PerformBrokerOperation()
+        {
+            Line("Routing operation through Devolutions Agent broker...", LineType.Information);
+
+            using var client = new BrokerClient();
+
+            // Check broker availability.
+            if (!await client.IsAvailableAsync())
+            {
+                Line("Agent broker is not available, falling back to local execution.", LineType.Information);
+                Logger.Warn("[AgentBroker] Broker not available, falling back to process execution");
+                return await base.PerformOperation();
+            }
+
+            // Build the broker request.
+            var request = BrokerRequestBuilder.Build(Package, Options, Role);
+
+            Line($"Sending request to broker: {request.RequestId}", LineType.VerboseDetails);
+            Line($"  Package: {request.Package.Id} ({request.Operation})", LineType.VerboseDetails);
+            Line($"  Manager: {request.Manager.Name}", LineType.VerboseDetails);
+            Line($"  User: {request.Broker.EffectiveUser}", LineType.VerboseDetails);
+
+            // Send to broker for execution.
+            var response = await client.ExecuteAsync(request);
+
+            if (response is null)
+            {
+                Line("No response from broker, falling back to local execution.", LineType.Information);
+                Logger.Warn("[AgentBroker] Null response from broker, falling back");
+                return await base.PerformOperation();
+            }
+
+            // Log the response.
+            Line($"Broker response: decision={response.Decision}, ruleId={response.RuleId}", LineType.Information);
+            Line($"  Reason: {response.Reason}", LineType.Information);
+            Line($"  Audit ID: {response.AuditId}", LineType.VerboseDetails);
+
+            if (response.Execution?.Command is { Count: > 0 })
+            {
+                Line($"  Command: {string.Join(" ", response.Execution.Command)}", LineType.VerboseDetails);
+            }
+
+            if (response.Decision.Equals("allow", StringComparison.OrdinalIgnoreCase))
+            {
+                Line("Operation allowed and executed by agent broker.", LineType.Information);
+                return OperationVeredict.Success;
+            }
+            else
+            {
+                Line($"Operation denied by policy: {response.Reason}", LineType.Error);
+                return OperationVeredict.Failure;
+            }
         }
 
         protected sealed override Task<OperationVeredict> GetProcessVeredict(

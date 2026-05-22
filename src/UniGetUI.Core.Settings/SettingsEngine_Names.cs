@@ -92,6 +92,9 @@ public static partial class Settings
         DisableClassicMode,
         DisableInstallerHostChangeWarning,
         BunPreferLatestVersions,
+        // NOTE: Set this to true to delegate package operations to Devolutions Agent broker
+        // instead of using local UAC elevation. Change default here when ready for production.
+        UseAgentBroker,
 
         Test1,
         Test2,
@@ -195,6 +198,7 @@ public static partial class Settings
             K.DisableClassicMode => "DisableClassicMode",
             K.DisableInstallerHostChangeWarning => "DisableInstallerHostChangeWarning",
             K.BunPreferLatestVersions => "BunPreferLatestVersions",
+            K.UseAgentBroker => "UseAgentBroker",
 
             K.Test1 => "TestSetting1",
             K.Test2 => "TestSetting2",
