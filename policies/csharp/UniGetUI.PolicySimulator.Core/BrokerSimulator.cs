@@ -9,7 +9,29 @@ public sealed class BrokerSimulator(PolicyDocument policy)
         try
         {
             var decision = _evaluator.Evaluate(policy, request);
-            var command = decision.Decision == "allow" ? CommandLineBuilder.Build(request) : [];
+            IReadOnlyList<string> command = [];
+            if (decision.Decision == "allow")
+            {
+                try
+                {
+                    command = CommandLineBuilder.Build(request);
+                }
+                catch (InvalidOperationException exception)
+                {
+                    return new BrokerEvaluationResponse(
+                        request.RequestId,
+                        request.Manager.Name,
+                        request.Source.Name,
+                        request.Package.Id,
+                        request.Operation,
+                        "deny",
+                        "<validation-failure>",
+                        exception.Message,
+                        false,
+                        [],
+                        "simulated-elevated");
+                }
+            }
             return new BrokerEvaluationResponse(
                 request.RequestId,
                 request.Manager.Name,

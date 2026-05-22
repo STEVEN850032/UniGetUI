@@ -1,0 +1,3 @@
+[alias]
+unigetui-validate = "run -p unigetui_policy_simulator_validate -- --policy-root .."
+unigetui-parity = "run -p unigetui_policy_simulator_tests -- --policy-root .."

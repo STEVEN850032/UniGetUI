@@ -33,6 +33,18 @@ public sealed class PolicyMetadata
 
     [JsonPropertyName("publishedAt")]
     public string PublishedAt { get; set; } = "";
+
+    [JsonPropertyName("validFrom")]
+    public string? ValidFrom { get; set; }
+
+    [JsonPropertyName("validUntil")]
+    public string? ValidUntil { get; set; }
+
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+
+    [JsonPropertyName("supportUrl")]
+    public string? SupportUrl { get; set; }
 }
 
 public sealed class PolicyEnforcement
@@ -218,10 +230,10 @@ public sealed class RequestManager
     public string Name { get; set; } = "";
 
     [JsonPropertyName("displayName")]
-    public string DisplayName { get; set; } = "";
+    public string? DisplayName { get; set; }
 
     [JsonPropertyName("executableFriendlyName")]
-    public string ExecutableFriendlyName { get; set; } = "";
+    public string? ExecutableFriendlyName { get; set; }
 }
 
 public sealed class RequestSource
@@ -249,6 +261,9 @@ public sealed class RequestPackage
 
     [JsonPropertyName("newVersion")]
     public string? NewVersion { get; set; }
+
+    [JsonPropertyName("channel")]
+    public string? Channel { get; set; }
 }
 
 public sealed class RequestOptions
@@ -296,10 +311,13 @@ public sealed class BrokerContext
     public string RequestedElevation { get; set; } = "";
 
     [JsonPropertyName("effectiveUser")]
-    public string EffectiveUser { get; set; } = "";
+    public string? EffectiveUser { get; set; }
 
     [JsonPropertyName("clientVersion")]
     public string? ClientVersion { get; set; }
+
+    [JsonPropertyName("clientProcessPath")]
+    public string? ClientProcessPath { get; set; }
 }
 
 public sealed record LoadedDocument<T>(string Path, string Format, string CanonicalJson, T Value);

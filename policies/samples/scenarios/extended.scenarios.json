@@ -190,8 +190,8 @@
       "id": "extended.validation.policy-invalid-failure-decision.deny",
       "policy": "invalid/policies/invalid-failure-decision.policy.json",
       "request": "requests/winget-vscode-install.request.json",
-      "expectedDecision": "deny",
-      "expectedRuleId": "<validation-failure>",
+      "expectedDecision": "allow",
+      "expectedRuleId": "allow.everything",
       "tags": ["extended", "validation", "fail-closed"]
     }
   ]

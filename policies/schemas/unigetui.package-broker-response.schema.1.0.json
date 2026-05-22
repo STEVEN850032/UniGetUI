@@ -4,7 +4,6 @@
   "title": "UniGetUI Package Broker Response Schema",
   "description": "Canonical response returned by a UniGetUI package broker after validating and evaluating a package operation request.",
   "type": "object",
-  "additionalProperties": false,
   "required": [
     "responseVersion",
     "responseType",
@@ -17,8 +16,7 @@
     "ruleId",
     "reason",
     "wouldExecute",
-    "policy",
-    "execution"
+    "policy"
   ],
   "properties": {
     "$schema": {
@@ -29,7 +27,9 @@
     },
     "responseType": {
       "type": "string",
-      "const": "packageBrokerResponse"
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "default": "packageBrokerResponse",
+      "description": "The response type. Recognized values: packageBrokerResponse."
     },
     "broker": {
       "$ref": "#/$defs/brokerInfo"
@@ -144,11 +144,13 @@
     },
     "decision": {
       "type": "string",
-      "enum": ["allow", "deny"]
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "description": "Decision value. Recognized values: allow, deny."
     },
     "operation": {
       "type": "string",
-      "enum": ["install", "update", "uninstall"]
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "description": "Operation value. Recognized values: install, update, uninstall."
     },
     "nullableShortString": {
       "anyOf": [
@@ -179,7 +181,6 @@
     },
     "brokerInfo": {
       "type": "object",
-      "additionalProperties": false,
       "required": ["name", "protocolVersion", "transport", "elevatedSimulation"],
       "properties": {
         "name": {
@@ -193,7 +194,8 @@
         },
         "transport": {
           "type": "string",
-          "enum": ["http-named-pipe", "http-loopback-simulator"]
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+          "description": "Transport identifier. Recognized values: http-named-pipe, http-loopback-simulator."
         },
         "pipeName": {
           "type": "string",
@@ -207,7 +209,6 @@
     },
     "policyInfo": {
       "type": "object",
-      "additionalProperties": false,
       "required": ["id", "revision", "policyVersion"],
       "properties": {
         "id": {
@@ -225,12 +226,12 @@
     },
     "execution": {
       "type": "object",
-      "additionalProperties": false,
       "required": ["mode", "command", "note"],
       "properties": {
         "mode": {
           "type": "string",
-          "enum": ["simulated-elevated", "elevated"]
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+          "description": "Execution mode. Recognized values: elevated, simulated-elevated."
         },
         "command": {
           "type": "array",

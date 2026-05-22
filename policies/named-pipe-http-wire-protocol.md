@@ -2,7 +2,7 @@
 
 This document defines a proposed local transport for package operation requests that are evaluated by the UniGetUI package policy engine. It keeps the package operation request body identical to `schemas/unigetui.package-request.schema.1.0.json` and defines how that document is carried over HTTP/1.1 on a Windows named pipe.
 
-The transport is intended for a future elevated broker. The current C# simulator remains unelevated and uses loopback HTTP, but it now mirrors the same versioned routes and response envelope.
+The transport is intended for a future elevated broker. The current C# simulator remains unelevated and uses loopback HTTP, while the Rust simulator now also supports an optional Windows named-pipe transport using the same versioned routes and response envelope.
 
 ## Goals
 

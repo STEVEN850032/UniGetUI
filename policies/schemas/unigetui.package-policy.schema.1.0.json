@@ -4,7 +4,6 @@
   "title": "UniGetUI Package Broker Policy Schema",
   "description": "Policy document used by an elevated UniGetUI broker to allow or deny package operation requests from an unelevated client.",
   "type": "object",
-  "additionalProperties": false,
   "required": [
     "policyVersion",
     "policyType",
@@ -23,8 +22,9 @@
     },
     "policyType": {
       "type": "string",
-      "const": "packageBrokerPolicy",
-      "description": "The policy document type."
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "default": "packageBrokerPolicy",
+      "description": "The policy document type. Recognized values: packageBrokerPolicy."
     },
     "metadata": {
       "$ref": "#/$defs/metadata"
@@ -59,42 +59,28 @@
     },
     "decision": {
       "type": "string",
-      "enum": [
-        "allow",
-        "deny"
-      ]
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "description": "Decision value. Recognized values: allow, deny. Unrecognized values are treated as deny."
     },
     "operation": {
       "type": "string",
-      "enum": [
-        "install",
-        "update",
-        "uninstall"
-      ]
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "description": "Operation value. Recognized values: install, update, uninstall. Unrecognized values are ignored during matching."
     },
     "scope": {
       "type": "string",
-      "enum": [
-        "user",
-        "machine"
-      ]
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "description": "Scope value. Recognized values: user, machine. Unrecognized values are ignored during matching."
     },
     "architecture": {
       "type": "string",
-      "enum": [
-        "x86",
-        "x64",
-        "arm32",
-        "arm64",
-        "neutral"
-      ]
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "description": "Architecture value. Recognized values: x86, x64, arm32, arm64, neutral. Unrecognized values are ignored during matching."
     },
     "managerName": {
       "type": "string",
-      "enum": [
-        "Winget",
-        "PowerShell"
-      ]
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "description": "Manager name. Recognized values include: Winget, PowerShell, Scoop, Chocolatey, Pip, Npm, Dotnet, Cargo, Homebrew, Pacman, Dnf, Apt, Flatpak. Unrecognized values are matched by string equality."
     },
     "stringPattern": {
       "type": "string",
@@ -104,7 +90,6 @@
     },
     "metadata": {
       "type": "object",
-      "additionalProperties": false,
       "required": [
         "id",
         "publisher",
@@ -148,7 +133,6 @@
     },
     "enforcement": {
       "type": "object",
-      "additionalProperties": false,
       "required": [
         "defaultDecision",
         "failureDecision",
@@ -161,15 +145,15 @@
         },
         "failureDecision": {
           "type": "string",
-          "const": "deny",
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
           "default": "deny",
-          "description": "Decision used when the broker cannot parse or validate the policy or request."
+          "description": "Decision used when the broker cannot parse or validate the policy or request. Recognized values: deny. Unrecognized values are treated as deny."
         },
         "rulePrecedence": {
           "type": "string",
-          "const": "priorityThenDeny",
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
           "default": "priorityThenDeny",
-          "description": "Lowest numeric priority wins. If matching rules share a priority, deny wins."
+          "description": "Rule precedence strategy. Recognized values: priorityThenDeny. Unrecognized values are treated as priorityThenDeny."
         },
         "auditMode": {
           "type": "boolean",
@@ -180,7 +164,6 @@
     },
     "rule": {
       "type": "object",
-      "additionalProperties": false,
       "required": [
         "id",
         "priority",
@@ -221,7 +204,6 @@
     },
     "match": {
       "type": "object",
-      "additionalProperties": false,
       "minProperties": 1,
       "properties": {
         "operations": {
@@ -282,7 +264,6 @@
         },
         "versionRange": {
           "type": "object",
-          "additionalProperties": false,
           "properties": {
             "minVersion": {
               "type": "string",
@@ -322,10 +303,8 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "standard",
-              "elevated"
-            ]
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+            "description": "Elevation level. Recognized values: standard, elevated."
           },
           "minItems": 1,
           "maxItems": 2,
@@ -407,7 +386,6 @@
     },
     "constraints": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
         "allowInteractive": {
           "type": "boolean"

@@ -1,0 +1,30 @@
+[workspace]
+members = [
+    "unigetui_policy_simulator_core",
+    "unigetui_policy_simulator_tests",
+    "unigetui_policy_simulator_server",
+    "unigetui_policy_simulator_client",
+    "unigetui_policy_simulator_http_tests",
+    "unigetui_policy_simulator_validate"
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+
+[workspace.dependencies]
+axum = "0.8"
+chrono = { version = "0.4", features = ["clock"] }
+hyper = { version = "1", features = ["http1", "server"] }
+hyper-util = { version = "0.1", features = ["service", "tokio"] }
+jsonschema = "0.29"
+regex = "1.11"
+reqwest = { version = "0.12", default-features = true }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+thiserror = "2.0"
+tokio = { version = "1.48", features = ["io-util", "macros", "net", "rt-multi-thread", "signal", "time"] }
+uuid = { version = "1.18", features = ["v4"] }
+

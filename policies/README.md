@@ -26,6 +26,7 @@ The initial format covers WinGet and PowerShell Gallery requests. It is intentio
 | `scripts/Invoke-UniGetUIPolicySimulation.ps1` | Runs one policy against one or more request files |
 | `scripts/Test-UniGetUIPolicySamples.ps1` | Runs the bundled end-to-end sample cases |
 | `csharp/UniGetUI.PolicySimulator.slnx` | C# end-to-end policy simulator solution with shared engine, server, client, and tests |
+| `rust/validate-rust-policy-simulator.ps1` | Runs the consolidated Rust validation driver |
 
 ## Trust Boundary
 
@@ -258,6 +259,42 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\policies\scripts\Test-UniGetUIPo
 ```
 
 Run a specific scenario manifest:
+
+## Rust Reference Simulator
+
+The Rust reference implementation lives under `policies/rust/` and currently mirrors the C# simulator across these slices:
+
+| Rust crate | Purpose |
+| --- | --- |
+| `unigetui_policy_simulator_core` | Shared models, loader, evaluator, command builder, response envelope, transport constants, and CLI helpers |
+| `unigetui_policy_simulator_server` | Loopback HTTP simulator server library and binary, with optional Windows named-pipe hosting |
+| `unigetui_policy_simulator_client` | CLI client for sending sample requests to the Rust server |
+| `unigetui_policy_simulator_tests` | Fixture-driven parity and response-schema runner |
+| `unigetui_policy_simulator_http_tests` | Live in-process transport integration runner for loopback HTTP and Windows named pipes |
+| `unigetui_policy_simulator_validate` | Rust-native driver that runs parity and live HTTP validation together |
+
+Run the consolidated Rust validation entry point:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\policies\rust\validate-rust-policy-simulator.ps1
+```
+
+That validation path runs the Rust-native validation driver, which executes the fixture-driven parity checks and then the live transport integration checks against the Rust server surface.
+
+For a Rust-native shortcut from `policies/rust/`, you can also run:
+
+```powershell
+cargo unigetui-parity
+cargo unigetui-validate
+```
+
+The live transport runner now covers loopback HTTP health, capabilities, allow, deny, header-validation failure, empty-body `400`, malformed JSON `422`, malformed YAML `422`, and on Windows also verifies named-pipe health, allow evaluation, empty-body `400`, header-mismatch validation failure, and malformed-JSON validation failure over raw HTTP carried on `NamedPipeClientStream`.
+
+On Windows, the Rust server can also host the same HTTP profile over a named pipe for local transport validation:
+
+```powershell
+cargo run -p unigetui_policy_simulator_server -- --policy ..\samples\corporate-allowlist.policy.json --pipe-name "\\.\pipe\UniGetUI.PackageBroker.v1"
+```
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\policies\scripts\Test-UniGetUIPolicySamples.ps1 `

@@ -1,0 +1,10 @@
+[package]
+name = "unigetui_policy_simulator_tests"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+unigetui_policy_simulator_core = { path = "../unigetui_policy_simulator_core" }

@@ -1,0 +1,10 @@
+[package]
+name = "unigetui_policy_simulator_client"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+reqwest.workspace = true
+tokio.workspace = true
+unigetui_policy_simulator_core = { path = "../unigetui_policy_simulator_core" }

@@ -1,0 +1,13 @@
+pub const PROTOCOL_VERSION: &str = "1.0";
+pub const REQUEST_MEDIA_TYPE: &str = "application/vnd.unigetui.package-request+json; version=1.0";
+pub const RESPONSE_MEDIA_TYPE: &str = "application/vnd.unigetui.package-broker-response+json; version=1.0";
+pub const DEFAULT_SERVER_URL: &str = "http://127.0.0.1:8765";
+pub const DEFAULT_PIPE_NAME: &str = r"\\.\pipe\UniGetUI.PackageBroker.v1";
+pub const HTTP_LOOPBACK_TRANSPORT: &str = "http-loopback-simulator";
+pub const NAMED_PIPE_TRANSPORT: &str = "http-named-pipe";
+pub const HEALTH_ENDPOINT: &str = "/v1/health";
+pub const CAPABILITIES_ENDPOINT: &str = "/v1/capabilities";
+pub const LEGACY_EVALUATE_ENDPOINT: &str = "/requests";
+pub const EVALUATE_ENDPOINT: &str = "/v1/package-operations/evaluate";
+pub const REQUEST_SCHEMA_URL: &str = "https://aka.ms/unigetui/package-request.schema.1.0.json";
+pub const RESPONSE_SCHEMA_URL: &str = "https://aka.ms/unigetui/package-broker-response.schema.1.0.json";

@@ -4,7 +4,6 @@
   "title": "UniGetUI Package Broker Request Schema",
   "description": "Canonical request sent by an unelevated UniGetUI process to an elevated broker for package operations.",
   "type": "object",
-  "additionalProperties": false,
   "required": [
     "requestVersion",
     "requestType",
@@ -28,8 +27,9 @@
     },
     "requestType": {
       "type": "string",
-      "const": "packageOperation",
-      "description": "The request type."
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "default": "packageOperation",
+      "description": "The request type. Recognized values: packageOperation."
     },
     "requestId": {
       "$ref": "#/$defs/resourceId",
@@ -77,36 +77,23 @@
     },
     "operation": {
       "type": "string",
-      "enum": [
-        "install",
-        "update",
-        "uninstall"
-      ],
-      "description": "The UniGetUI package operation role."
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "description": "The UniGetUI package operation. Recognized values: install, update, uninstall."
     },
     "scope": {
       "type": "string",
-      "enum": [
-        "user",
-        "machine"
-      ]
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "description": "Scope value. Recognized values: user, machine."
     },
     "architecture": {
       "type": "string",
-      "enum": [
-        "x86",
-        "x64",
-        "arm32",
-        "arm64",
-        "neutral"
-      ]
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "description": "Architecture value. Recognized values: x86, x64, arm32, arm64, neutral."
     },
     "managerName": {
       "type": "string",
-      "enum": [
-        "Winget",
-        "PowerShell"
-      ]
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+      "description": "Manager name. Recognized values include: Winget, PowerShell, Scoop, Chocolatey, Pip, Npm, Dotnet, Cargo, Homebrew, Pacman, Dnf, Apt, Flatpak."
     },
     "packageIdentifier": {
       "type": "string",
@@ -117,11 +104,8 @@
     },
     "manager": {
       "type": "object",
-      "additionalProperties": false,
       "required": [
-        "name",
-        "displayName",
-        "executableFriendlyName"
+        "name"
       ],
       "properties": {
         "name": {
@@ -141,7 +125,6 @@
     },
     "source": {
       "type": "object",
-      "additionalProperties": false,
       "required": [
         "name"
       ],
@@ -162,7 +145,6 @@
     },
     "package": {
       "type": "object",
-      "additionalProperties": false,
       "required": [
         "id",
         "name"
@@ -193,13 +175,6 @@
     },
     "options": {
       "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "interactive",
-        "runAsAdministrator",
-        "skipHashCheck",
-        "preRelease"
-      ],
       "properties": {
         "scope": {
           "$ref": "#/$defs/scope"
@@ -259,23 +234,20 @@
     },
     "brokerContext": {
       "type": "object",
-      "additionalProperties": false,
       "required": [
-        "requestedElevation",
-        "effectiveUser"
+        "requestedElevation"
       ],
       "properties": {
         "requestedElevation": {
           "type": "string",
-          "enum": [
-            "standard",
-            "elevated"
-          ]
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+          "description": "Requested elevation level. Recognized values: standard, elevated."
         },
         "effectiveUser": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 256
+          "maxLength": 256,
+          "description": "Optional. The effective user identity. When omitted, the broker derives it from the transport authentication."
         },
         "clientVersion": {
           "type": "string",

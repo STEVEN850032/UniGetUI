@@ -57,7 +57,18 @@ static BrokerEvaluationResponse EvaluateScenario(DocumentLoader loader, PolicyEv
         var policy = loader.LoadFile<PolicyDocument>(policyPath, policySchemaPath).Value;
         var request = loader.LoadFile<PackageRequest>(requestPath, requestSchemaPath).Value;
         var decision = evaluator.Evaluate(policy, request);
-        var command = decision.Decision == "allow" ? CommandLineBuilder.Build(request) : [];
+        IReadOnlyList<string> command = [];
+        if (decision.Decision == "allow")
+        {
+            try
+            {
+                command = CommandLineBuilder.Build(request);
+            }
+            catch (InvalidOperationException exception)
+            {
+                return new BrokerEvaluationResponse(request.RequestId, request.Manager.Name, request.Source.Name, request.Package.Id, request.Operation, "deny", "<validation-failure>", exception.Message, false, [], "simulated-elevated");
+            }
+        }
         return new BrokerEvaluationResponse(request.RequestId, request.Manager.Name, request.Source.Name, request.Package.Id, request.Operation, decision.Decision, decision.RuleId, decision.Reason, decision.Decision == "allow", command, "simulated-elevated");
     }
     catch (Exception exception) when (exception is PolicyValidationException or JsonException)

@@ -25,11 +25,12 @@ public sealed class PolicyEvaluator
 
         if (matchedRules.Count == 0)
         {
+            var defaultDecision = NormalizeDefaultDecision(policy.Enforcement.DefaultDecision);
             return new PolicyDecision(
-                policy.Enforcement.DefaultDecision,
+                defaultDecision,
                 "<default>",
                 null,
-                $"No enabled rule matched; using defaultDecision '{policy.Enforcement.DefaultDecision}'.",
+                $"No enabled rule matched; using defaultDecision '{defaultDecision}'.",
                 []);
         }
 
@@ -43,26 +44,33 @@ public sealed class PolicyEvaluator
 
     public static void ValidatePolicyShape(PolicyDocument policy)
     {
+        if (string.IsNullOrWhiteSpace(policy.PolicyType)) throw new PolicyValidationException("Policy field 'policyType' is required.");
         if (policy.PolicyType != "packageBrokerPolicy") throw new PolicyValidationException("Policy field 'policyType' must be 'packageBrokerPolicy'.");
         if (string.IsNullOrWhiteSpace(policy.PolicyVersion)) throw new PolicyValidationException("Policy field 'policyVersion' is required.");
         if (string.IsNullOrWhiteSpace(policy.Metadata.Id)) throw new PolicyValidationException("Policy field 'metadata.id' is required.");
-        if (policy.Enforcement.FailureDecision != "deny") throw new PolicyValidationException("Policy field 'enforcement.failureDecision' must be 'deny'.");
-        if (policy.Enforcement.DefaultDecision is not ("allow" or "deny")) throw new PolicyValidationException("Policy field 'enforcement.defaultDecision' must be 'allow' or 'deny'.");
-        if (policy.Enforcement.RulePrecedence != "priorityThenDeny") throw new PolicyValidationException("Policy field 'enforcement.rulePrecedence' must be 'priorityThenDeny'.");
+        if (string.IsNullOrWhiteSpace(policy.Enforcement.FailureDecision)) throw new PolicyValidationException("Policy field 'enforcement.failureDecision' is required.");
+        if (string.IsNullOrWhiteSpace(policy.Enforcement.DefaultDecision)) throw new PolicyValidationException("Policy field 'enforcement.defaultDecision' is required.");
+        if (string.IsNullOrWhiteSpace(policy.Enforcement.RulePrecedence)) throw new PolicyValidationException("Policy field 'enforcement.rulePrecedence' is required.");
         if (policy.Rules.Count == 0) throw new PolicyValidationException("Policy field 'rules' must contain at least one rule.");
     }
 
     public static void ValidateRequestShape(PackageRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.RequestType)) throw new PolicyValidationException("Request field 'requestType' is required.");
         if (request.RequestType != "packageOperation") throw new PolicyValidationException("Request field 'requestType' must be 'packageOperation'.");
         if (string.IsNullOrWhiteSpace(request.RequestVersion)) throw new PolicyValidationException("Request field 'requestVersion' is required.");
         if (string.IsNullOrWhiteSpace(request.RequestId)) throw new PolicyValidationException("Request field 'requestId' is required.");
-        if (request.Operation is not ("install" or "update" or "uninstall")) throw new PolicyValidationException($"Request operation '{request.Operation}' is not supported.");
-        if (request.Manager.Name is not ("Winget" or "PowerShell")) throw new PolicyValidationException("Request manager.name must be 'Winget' or 'PowerShell'.");
+        if (string.IsNullOrWhiteSpace(request.Operation)) throw new PolicyValidationException("Request operation is required.");
+        if (string.IsNullOrWhiteSpace(request.Manager.Name)) throw new PolicyValidationException("Request manager.name is required.");
         if (string.IsNullOrWhiteSpace(request.Source.Name)) throw new PolicyValidationException("Request source.name is required.");
         if (string.IsNullOrWhiteSpace(request.Package.Id)) throw new PolicyValidationException("Request package.id is required.");
         if (string.IsNullOrWhiteSpace(request.Package.Name)) throw new PolicyValidationException("Request package.name is required.");
-        if (request.Broker.RequestedElevation is not ("standard" or "elevated")) throw new PolicyValidationException("Request broker.requestedElevation must be 'standard' or 'elevated'.");
+        if (string.IsNullOrWhiteSpace(request.Broker.RequestedElevation)) throw new PolicyValidationException("Request broker.requestedElevation is required.");
+    }
+
+    private static string NormalizeDefaultDecision(string? decision)
+    {
+        return string.Equals(decision, "allow", StringComparison.OrdinalIgnoreCase) ? "allow" : "deny";
     }
 
     private static bool RuleMatches(PolicyRule rule, PackageRequest request)
