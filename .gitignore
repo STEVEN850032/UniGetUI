@@ -96,3 +96,7 @@ src/UniGetUI.v3.ncrunchsolution
 # macOS Finder metadata
 .DS_Store
 /src/UniGetUI.Avalonia/Generated Files
+
+
+policies/csharp/.vs/*
+src/UniGetUI.PackageEngine.Managers.WinGet
