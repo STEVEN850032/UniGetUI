@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace UniGetUI.PackageEngine.AgentBroker;
@@ -45,10 +46,10 @@ public sealed class BrokerRequestManager
     public string Name { get; set; } = "";
 
     [JsonPropertyName("displayName")]
-    public string? DisplayName { get; set; }
+    public string DisplayName { get; set; } = "";
 
     [JsonPropertyName("executableFriendlyName")]
-    public string? ExecutableFriendlyName { get; set; }
+    public string ExecutableFriendlyName { get; set; } = "";
 }
 
 public sealed class BrokerRequestSource
@@ -225,3 +226,10 @@ public sealed class BrokerExecutionInfo
     [JsonPropertyName("command")]
     public List<string> Command { get; set; } = [];
 }
+
+[JsonSourceGenerationOptions(
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+[JsonSerializable(typeof(BrokerRequest))]
+[JsonSerializable(typeof(BrokerResponse))]
+internal sealed partial class BrokerJsonContext : JsonSerializerContext;

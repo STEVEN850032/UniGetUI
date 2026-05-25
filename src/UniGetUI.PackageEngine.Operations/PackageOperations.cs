@@ -171,13 +171,17 @@ namespace UniGetUI.PackageEngine.Operations
         {
             // NOTE: Change this condition to enable agent broker by default when ready.
             // Currently opt-in via settings.
-            if (!Settings.Get(Settings.K.UseAgentBroker))
+            bool settingEnabled = Settings.Get(Settings.K.UseAgentBroker);
+            bool isWinGet = IsWinGetManager(Package.Manager);
+            Logger.Info($"[AgentBroker] ShouldUseAgentBroker check: setting={settingEnabled}, isWinGet={isWinGet}, manager={Package.Manager.Name}");
+
+            if (!settingEnabled)
             {
                 return false;
             }
 
             // Only WinGet is supported in this iteration.
-            if (!IsWinGetManager(Package.Manager))
+            if (!isWinGet)
             {
                 return false;
             }
@@ -218,7 +222,8 @@ namespace UniGetUI.PackageEngine.Operations
             {
                 Line("No response from broker, falling back to local execution.", LineType.Information);
                 Logger.Warn("[AgentBroker] Null response from broker, falling back");
-                return await base.PerformOperation();
+                throw new ApplicationException("NO BROKER");
+                //return await base.PerformOperation();
             }
 
             // Log the response.

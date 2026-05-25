@@ -1,6 +1,7 @@
 using System.IO.Pipes;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using UniGetUI.Core.Logging;
 
 namespace UniGetUI.PackageEngine.AgentBroker;
@@ -35,12 +36,14 @@ public sealed class BrokerClient : IDisposable
 #else
         try
         {
+            Logger.Debug($"[BrokerClient] Checking availability on pipe '{_pipeName}'...");
             var response = await SendHttpRequestAsync("GET", "/v1/health", null);
+            Logger.Debug($"[BrokerClient] Health check: status={response.StatusCode}, body={response.Body}");
             return response.StatusCode == 200;
         }
         catch (Exception ex)
         {
-            Logger.Debug($"[BrokerClient] Broker not available: {ex.Message}");
+            Logger.Debug($"[BrokerClient] Broker not available: {ex.GetType().Name}: {ex.Message}");
             return false;
         }
 #endif
@@ -80,11 +83,10 @@ public sealed class BrokerClient : IDisposable
     {
         try
         {
-            var body = JsonSerializer.Serialize(request, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-            });
+            var body = JsonSerializer.Serialize(request, BrokerJsonContext.Default.BrokerRequest);
+
+            Logger.Debug($"[BrokerClient] Sending POST {endpoint} (body length={body.Length})");
+            Logger.Debug($"[BrokerClient] Request body: {body}");
 
             var headers = new Dictionary<string, string>
             {
@@ -97,13 +99,17 @@ public sealed class BrokerClient : IDisposable
 
             var response = await SendHttpRequestAsync("POST", endpoint, body, headers);
 
+            Logger.Debug($"[BrokerClient] Response status={response.StatusCode}, body length={response.Body?.Length ?? 0}");
+            Logger.Debug($"[BrokerClient] Response body: {response.Body}");
+
             if (string.IsNullOrWhiteSpace(response.Body))
             {
                 Logger.Error($"[BrokerClient] Empty response body from broker (status: {response.StatusCode})");
                 return null;
             }
 
-            var brokerResponse = JsonSerializer.Deserialize<BrokerResponse>(response.Body);
+            var brokerResponse = JsonSerializer.Deserialize(response.Body, BrokerJsonContext.Default.BrokerResponse);
+            Logger.Debug($"[BrokerClient] Deserialized: decision={brokerResponse?.Decision}, reason={brokerResponse?.Reason}");
             return brokerResponse;
         }
         catch (Exception ex)
@@ -125,13 +131,16 @@ public sealed class BrokerClient : IDisposable
     {
         using var pipe = new NamedPipeClientStream(".", _pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
 
+        Logger.Debug($"[BrokerClient] Connecting to pipe '{_pipeName}'...");
         var connectCts = new CancellationTokenSource(CONNECT_TIMEOUT_MS);
         await pipe.ConnectAsync(connectCts.Token);
+        Logger.Debug($"[BrokerClient] Connected! IsConnected={pipe.IsConnected}, CanRead={pipe.CanRead}, CanWrite={pipe.CanWrite}");
 
         // Build HTTP/1.1 request.
         var requestBuilder = new StringBuilder();
         requestBuilder.Append($"{method} {path} HTTP/1.1\r\n");
         requestBuilder.Append("Host: unigetui-broker\r\n");
+        requestBuilder.Append("Connection: close\r\n");
 
         if (extraHeaders != null)
         {
@@ -165,6 +174,7 @@ public sealed class BrokerClient : IDisposable
             await pipe.WriteAsync(bodyBytes);
         }
         await pipe.FlushAsync();
+        Logger.Debug($"[BrokerClient] Wrote {headerBytes.Length + (bodyBytes?.Length ?? 0)} bytes to pipe, reading response...");
 
         // Read response.
         var readCts = new CancellationTokenSource(READ_TIMEOUT_MS);
@@ -183,7 +193,16 @@ public sealed class BrokerClient : IDisposable
         while (totalRead < buffer.Length)
         {
             var bytesRead = await stream.ReadAsync(buffer.AsMemory(totalRead, buffer.Length - totalRead), ct);
-            if (bytesRead == 0) break;
+            Logger.Debug($"[BrokerClient] Pipe read: {bytesRead} bytes (total so far: {totalRead + bytesRead})");
+            if (bytesRead == 0)
+            {
+                Logger.Debug($"[BrokerClient] Pipe returned 0 bytes (closed). Total read: {totalRead}");
+                if (totalRead > 0)
+                {
+                    Logger.Debug($"[BrokerClient] Raw data so far: {Encoding.UTF8.GetString(buffer, 0, Math.Min(totalRead, 500))}");
+                }
+                break;
+            }
             totalRead += bytesRead;
 
             // Check if we have the end of headers.
