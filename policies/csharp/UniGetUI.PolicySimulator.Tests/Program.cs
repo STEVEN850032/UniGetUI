@@ -7,8 +7,8 @@ var policyRoot = parsedArgs.TryGetValue("policy-root", out var policyRootArgumen
     ? PolicyPathResolver.ResolveExistingPath(policyRootArgument)
     : PolicyPathResolver.FindPoliciesRoot();
 var samplesRoot = Path.Combine(policyRoot, "samples");
-var policySchemaPath = Path.Combine(policyRoot, "schemas", "unigetui.package-policy.schema.1.0.json");
-var requestSchemaPath = Path.Combine(policyRoot, "schemas", "unigetui.package-request.schema.1.0.json");
+var policySchemaPath = Path.Combine(policyRoot, "schemas", "unigetui.package-policy.schema.json");
+var requestSchemaPath = Path.Combine(policyRoot, "schemas", "unigetui.package-request.schema.json");
 var scenarioRoot = Path.Combine(samplesRoot, "scenarios");
 var loader = new DocumentLoader();
 var evaluator = new PolicyEvaluator();

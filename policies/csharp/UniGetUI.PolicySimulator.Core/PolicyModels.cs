@@ -247,20 +247,17 @@ public sealed class RequestPackage
     [JsonPropertyName("version")]
     public string? Version { get; set; }
 
-    [JsonPropertyName("newVersion")]
-    public string? NewVersion { get; set; }
+    [JsonPropertyName("architecture")]
+    public string? Architecture { get; set; }
+
+    [JsonPropertyName("channel")]
+    public string? Channel { get; set; }
 }
 
 public sealed class RequestOptions
 {
     [JsonPropertyName("scope")]
     public string? Scope { get; set; }
-
-    [JsonPropertyName("architecture")]
-    public string? Architecture { get; set; }
-
-    [JsonPropertyName("version")]
-    public string? Version { get; set; }
 
     [JsonPropertyName("interactive")]
     public bool Interactive { get; set; }

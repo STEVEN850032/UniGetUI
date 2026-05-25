@@ -15,9 +15,9 @@ source:
 package:
   id: Microsoft.VisualStudioCode
   name: Microsoft Visual Studio Code
+  architecture: x64
 options:
   scope: machine
-  architecture: x64
   interactive: false
   runAsAdministrator: true
   skipHashCheck: false

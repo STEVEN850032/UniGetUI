@@ -25,9 +25,9 @@ public static class CommandLineBuilder
         var command = new List<string> { "winget.exe", operation, "--id", request.Package.Id, "--exact" };
         AddPair(command, "--source", request.Source.Name);
         AddPair(command, "--scope", request.Options.Scope);
-        AddPair(command, "--version", request.Options.Version);
+        AddPair(command, "--version", request.Package.Version);
         command.Add(request.Options.Interactive ? "--interactive" : "--silent");
-        AddPair(command, "--architecture", request.Options.Architecture);
+        AddPair(command, "--architecture", request.Package.Architecture);
         if (request.Options.SkipHashCheck) command.Add("--ignore-security-hash");
         AddPair(command, "--location", request.Options.CustomInstallLocation);
         command.AddRange(request.Options.CustomParameters ?? []);
@@ -47,7 +47,7 @@ public static class CommandLineBuilder
         var command = new List<string> { "pwsh.exe", "-NoProfile", "-Command", verb, "-Name", request.Package.Id };
         if (request.Operation == "install" && request.Options.Scope == "user") command.AddRange(["-Scope", "CurrentUser"]);
         if (request.Operation == "install" && request.Options.Scope == "machine") command.AddRange(["-Scope", "AllUsers"]);
-        AddPair(command, "-RequiredVersion", request.Options.Version);
+        AddPair(command, "-RequiredVersion", request.Package.Version);
         if (request.Options.PreRelease) command.Add("-AllowPrerelease");
         if (request.Options.SkipHashCheck) command.Add("-SkipPublisherCheck");
         command.AddRange(request.Options.CustomParameters ?? []);

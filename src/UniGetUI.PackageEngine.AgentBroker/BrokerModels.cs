@@ -3,12 +3,18 @@ using System.Text.Json.Serialization;
 
 namespace UniGetUI.PackageEngine.AgentBroker;
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Request models — matches Rust PackageRequest (deny_unknown_fields)
+// ═══════════════════════════════════════════════════════════════════════════════
+
 /// <summary>
-/// Request models matching the UniGetUI package broker protocol v1.0.
-/// These correspond to schemas/unigetui.package-request.schema.1.0.json.
+/// Package operation request matching the broker protocol v1.0.
 /// </summary>
 public sealed class BrokerRequest
 {
+    [JsonPropertyName("$schema")]
+    public string Schema { get; set; } = "https://aka.ms/unigetui/package-request.schema.1.0.json";
+
     [JsonPropertyName("requestVersion")]
     public string RequestVersion { get; set; } = "1.0.0";
 
@@ -61,9 +67,12 @@ public sealed class BrokerRequestSource
     public string? Url { get; set; }
 
     [JsonPropertyName("isVirtualManager")]
-    public bool IsVirtualManager { get; set; }
+    public bool? IsVirtualManager { get; set; }
 }
 
+/// <summary>
+/// Package identification — architecture and version live HERE (not in Options).
+/// </summary>
 public sealed class BrokerRequestPackage
 {
     [JsonPropertyName("id")]
@@ -75,17 +84,20 @@ public sealed class BrokerRequestPackage
     [JsonPropertyName("version")]
     public string? Version { get; set; }
 
-    [JsonPropertyName("newVersion")]
-    public string? NewVersion { get; set; }
+    [JsonPropertyName("architecture")]
+    public string? Architecture { get; set; }
+
+    [JsonPropertyName("channel")]
+    public string? Channel { get; set; }
 }
 
+/// <summary>
+/// Operation options — NO architecture/version here (those are on Package).
+/// </summary>
 public sealed class BrokerRequestOptions
 {
     [JsonPropertyName("scope")]
     public string? Scope { get; set; }
-
-    [JsonPropertyName("architecture")]
-    public string? Architecture { get; set; }
 
     [JsonPropertyName("interactive")]
     public bool Interactive { get; set; }
@@ -99,8 +111,11 @@ public sealed class BrokerRequestOptions
     [JsonPropertyName("preRelease")]
     public bool PreRelease { get; set; }
 
-    [JsonPropertyName("version")]
-    public string? Version { get; set; }
+    [JsonPropertyName("uninstallPrevious")]
+    public bool UninstallPrevious { get; set; }
+
+    [JsonPropertyName("noUpgrade")]
+    public bool NoUpgrade { get; set; }
 
     [JsonPropertyName("customParameters")]
     public List<string> CustomParameters { get; set; } = [];
@@ -127,15 +142,24 @@ public sealed class BrokerRequestContext
     public string EffectiveUser { get; set; } = "";
 
     [JsonPropertyName("clientVersion")]
-    public string ClientVersion { get; set; } = "";
+    public string? ClientVersion { get; set; }
+
+    [JsonPropertyName("clientProcessPath")]
+    public string? ClientProcessPath { get; set; }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Response models — matches Rust BrokerResponse
+// ═══════════════════════════════════════════════════════════════════════════════
+
 /// <summary>
-/// Response models matching the UniGetUI package broker protocol v1.0.
-/// These correspond to schemas/unigetui.package-broker-response.schema.1.0.json.
+/// Broker evaluation/execution response.
 /// </summary>
 public sealed class BrokerResponse
 {
+    [JsonPropertyName("$schema")]
+    public string? Schema { get; set; }
+
     [JsonPropertyName("responseVersion")]
     public string ResponseVersion { get; set; } = "";
 
@@ -149,13 +173,13 @@ public sealed class BrokerResponse
     public string AuditId { get; set; } = "";
 
     [JsonPropertyName("requestId")]
-    public string? RequestId { get; set; }
+    public string RequestId { get; set; } = "";
 
     [JsonPropertyName("receivedAt")]
-    public string? ReceivedAt { get; set; }
+    public string ReceivedAt { get; set; } = "";
 
     [JsonPropertyName("completedAt")]
-    public string? CompletedAt { get; set; }
+    public string CompletedAt { get; set; } = "";
 
     [JsonPropertyName("manager")]
     public string? Manager { get; set; }
@@ -200,7 +224,7 @@ public sealed class BrokerResponseInfo
     public string Transport { get; set; } = "";
 
     [JsonPropertyName("pipeName")]
-    public string PipeName { get; set; } = "";
+    public string? PipeName { get; set; }
 
     [JsonPropertyName("elevatedSimulation")]
     public bool ElevatedSimulation { get; set; }
@@ -214,8 +238,8 @@ public sealed class BrokerPolicyInfo
     [JsonPropertyName("revision")]
     public int Revision { get; set; }
 
-    [JsonPropertyName("defaultDecision")]
-    public string DefaultDecision { get; set; } = "";
+    [JsonPropertyName("policyVersion")]
+    public string PolicyVersion { get; set; } = "";
 }
 
 public sealed class BrokerExecutionInfo
@@ -225,6 +249,70 @@ public sealed class BrokerExecutionInfo
 
     [JsonPropertyName("command")]
     public List<string> Command { get; set; } = [];
+
+    [JsonPropertyName("note")]
+    public string Note { get; set; } = "";
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Status query models — matches Rust StatusRequest / StatusResponse
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Status query request for a previously submitted package operation.
+/// </summary>
+public sealed class BrokerStatusRequest
+{
+    [JsonPropertyName("$schema")]
+    public string Schema { get; set; } = "https://aka.ms/unigetui/package-operation-status-request.schema.1.0.json";
+
+    [JsonPropertyName("requestVersion")]
+    public string RequestVersion { get; set; } = "1.0.0";
+
+    [JsonPropertyName("requestType")]
+    public string RequestType { get; set; } = "packageOperationStatus";
+
+    [JsonPropertyName("requestId")]
+    public string RequestId { get; set; } = "";
+
+    [JsonPropertyName("broker")]
+    public BrokerRequestContext Broker { get; set; } = new();
+}
+
+/// <summary>
+/// Status query response from the broker.
+/// </summary>
+public sealed class BrokerStatusResponse
+{
+    [JsonPropertyName("$schema")]
+    public string? Schema { get; set; }
+
+    [JsonPropertyName("responseVersion")]
+    public string ResponseVersion { get; set; } = "";
+
+    [JsonPropertyName("responseType")]
+    public string ResponseType { get; set; } = "";
+
+    [JsonPropertyName("broker")]
+    public BrokerResponseInfo? Broker { get; set; }
+
+    [JsonPropertyName("requestId")]
+    public string RequestId { get; set; } = "";
+
+    [JsonPropertyName("status")]
+    public string Status { get; set; } = "";
+
+    [JsonPropertyName("startedAt")]
+    public string? StartedAt { get; set; }
+
+    [JsonPropertyName("completedAt")]
+    public string? CompletedAt { get; set; }
+
+    [JsonPropertyName("exitCode")]
+    public int? ExitCode { get; set; }
+
+    [JsonPropertyName("note")]
+    public string? Note { get; set; }
 }
 
 [JsonSourceGenerationOptions(
@@ -232,4 +320,6 @@ public sealed class BrokerExecutionInfo
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(BrokerRequest))]
 [JsonSerializable(typeof(BrokerResponse))]
-internal sealed partial class BrokerJsonContext : JsonSerializerContext;
+[JsonSerializable(typeof(BrokerStatusRequest))]
+[JsonSerializable(typeof(BrokerStatusResponse))]
+public sealed partial class BrokerJsonContext : JsonSerializerContext;

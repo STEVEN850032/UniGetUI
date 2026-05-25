@@ -78,7 +78,7 @@ public sealed class PolicyEvaluator
             ValueInList(effectiveVersion, rule.Match.Versions) &&
             VersionRangeMatches(effectiveVersion, rule.Match.VersionRange) &&
             ValueInList(request.Options.Scope, rule.Match.Scopes) &&
-            ValueInList(request.Options.Architecture, rule.Match.Architectures) &&
+            ValueInList(request.Package.Architecture, rule.Match.Architectures) &&
             ValueInList(request.Broker.RequestedElevation, rule.Match.Elevation) &&
             ValueInList(request.Options.RunAsAdministrator, rule.Match.RunAsAdministrator) &&
             ValueInList(request.Options.Interactive, rule.Match.Interactive) &&
@@ -136,8 +136,6 @@ public sealed class PolicyEvaluator
 
     private static string GetEffectiveVersion(PackageRequest request)
     {
-        if (!string.IsNullOrWhiteSpace(request.Options.Version)) return request.Options.Version;
-        if (!string.IsNullOrWhiteSpace(request.Package.NewVersion)) return request.Package.NewVersion;
         if (!string.IsNullOrWhiteSpace(request.Package.Version)) return request.Package.Version;
         return string.Empty;
     }

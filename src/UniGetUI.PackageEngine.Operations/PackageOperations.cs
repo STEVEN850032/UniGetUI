@@ -215,37 +215,37 @@ namespace UniGetUI.PackageEngine.Operations
             Line($"  Manager: {request.Manager.Name}", LineType.VerboseDetails);
             Line($"  User: {request.Broker.EffectiveUser}", LineType.VerboseDetails);
 
-            // Send to broker for execution.
-            var response = await client.ExecuteAsync(request);
+            // Send to broker and poll until completion.
+            var status = await client.ExecuteAndWaitAsync(request);
 
-            if (response is null)
+            if (status is null)
             {
-                Line("No response from broker, falling back to local execution.", LineType.Information);
-                Logger.Warn("[AgentBroker] Null response from broker, falling back");
-                throw new ApplicationException("NO BROKER");
-                //return await base.PerformOperation();
-            }
-
-            // Log the response.
-            Line($"Broker response: decision={response.Decision}, ruleId={response.RuleId}", LineType.Information);
-            Line($"  Reason: {response.Reason}", LineType.Information);
-            Line($"  Audit ID: {response.AuditId}", LineType.VerboseDetails);
-
-            if (response.Execution?.Command is { Count: > 0 })
-            {
-                Line($"  Command: {string.Join(" ", response.Execution.Command)}", LineType.VerboseDetails);
-            }
-
-            if (response.Decision.Equals("allow", StringComparison.OrdinalIgnoreCase))
-            {
-                Line("Operation allowed and executed by agent broker.", LineType.Information);
-                return OperationVeredict.Success;
-            }
-            else
-            {
-                Line($"Operation denied by policy: {response.Reason}", LineType.Error);
+                Line("No response from broker — the operation could not be submitted.", LineType.Error);
+                Logger.Error("[AgentBroker] ExecuteAndWaitAsync returned null");
+                Metadata.FailureTitle = CoreTools.Translate("Broker communication error");
+                Metadata.FailureMessage = CoreTools.Translate("The agent broker did not respond. Ensure Devolutions Agent is running.");
                 return OperationVeredict.Failure;
             }
+
+            // Log status details.
+            Line($"Broker status: {status.Status}, exitCode={status.ExitCode}", LineType.Information);
+            if (!string.IsNullOrWhiteSpace(status.Note))
+            {
+                Line($"  Note: {status.Note}", LineType.Information);
+            }
+
+            if (status.Status == "completed" && status.ExitCode == 0)
+            {
+                Line("Operation completed successfully via agent broker.", LineType.Information);
+                return OperationVeredict.Success;
+            }
+
+            // Operation failed — surface a user-visible error.
+            string reason = status.Note ?? $"Exit code: {status.ExitCode}";
+            Line($"Operation failed via broker: {reason}", LineType.Error);
+            Metadata.FailureTitle = CoreTools.Translate("Operation denied or failed via broker");
+            Metadata.FailureMessage = reason;
+            return OperationVeredict.Failure;
         }
 
         protected sealed override Task<OperationVeredict> GetProcessVeredict(

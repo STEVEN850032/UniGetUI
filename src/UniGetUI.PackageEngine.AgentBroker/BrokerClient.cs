@@ -63,6 +63,7 @@ public sealed class BrokerClient : IDisposable
 
     /// <summary>
     /// Send a package operation request to the broker for execution.
+    /// Returns the initial broker response (policy evaluation + execution acceptance).
     /// </summary>
     public async Task<BrokerResponse?> ExecuteAsync(BrokerRequest request)
     {
@@ -70,6 +71,121 @@ public sealed class BrokerClient : IDisposable
         return null;
 #else
         return await SendPackageOperationAsync(request, "/v1/package-operations");
+#endif
+    }
+
+    /// <summary>
+    /// Send a package operation and poll for completion status.
+    /// Returns the final status response once the operation finishes (completed/failed)
+    /// or null if the initial request fails.
+    /// </summary>
+    public async Task<BrokerStatusResponse?> ExecuteAndWaitAsync(
+        BrokerRequest request,
+        CancellationToken cancellationToken = default,
+        int pollIntervalMs = 500)
+    {
+#if !WINDOWS
+        return null;
+#else
+        // Step 1: Send the execute request.
+        var executeResponse = await SendPackageOperationAsync(request, "/v1/package-operations");
+        if (executeResponse is null)
+        {
+            Logger.Error("[BrokerClient] Execute request failed, cannot poll for status.");
+            return null;
+        }
+
+        if (executeResponse.Decision != "allow")
+        {
+            Logger.Debug($"[BrokerClient] Operation denied by policy: {executeResponse.Reason}");
+            return new BrokerStatusResponse
+            {
+                RequestId = request.RequestId,
+                Status = "failed",
+                Note = $"Denied by policy: {executeResponse.Reason}",
+            };
+        }
+
+        // Step 2: Poll for status until terminal state.
+        Logger.Debug($"[BrokerClient] Operation submitted, polling status for requestId={request.RequestId}");
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            await Task.Delay(pollIntervalMs, cancellationToken);
+
+            var status = await QueryStatusAsync(request.RequestId, request.Broker);
+            if (status is null)
+            {
+                Logger.Warn("[BrokerClient] Status query returned null, retrying...");
+                continue;
+            }
+
+            Logger.Debug($"[BrokerClient] Poll: status={status.Status}, exitCode={status.ExitCode}");
+
+            if (status.Status is "completed" or "failed")
+            {
+                return status;
+            }
+        }
+
+        // Cancelled.
+        return new BrokerStatusResponse
+        {
+            RequestId = request.RequestId,
+            Status = "failed",
+            Note = "Operation polling was cancelled.",
+        };
+#endif
+    }
+
+    /// <summary>
+    /// Query the status of a previously submitted package operation.
+    /// </summary>
+    public async Task<BrokerStatusResponse?> QueryStatusAsync(string requestId, BrokerRequestContext brokerContext)
+    {
+#if !WINDOWS
+        return null;
+#else
+        try
+        {
+            var statusRequest = new BrokerStatusRequest
+            {
+                RequestId = requestId,
+                Broker = brokerContext,
+            };
+
+            var body = JsonSerializer.Serialize(statusRequest, BrokerJsonContext.Default.BrokerStatusRequest);
+
+            Logger.Debug($"[BrokerClient] Sending POST /v1/package-operations/status (body length={body.Length})");
+
+            var headers = new Dictionary<string, string>
+            {
+                ["Content-Type"] = "application/json",
+                ["Accept"] = "application/json",
+                ["UniGetUI-Protocol-Version"] = PROTOCOL_VERSION,
+                ["Host"] = "unigetui-broker"
+            };
+
+            var response = await SendHttpRequestAsync("POST", "/v1/package-operations/status", body, headers);
+
+            Logger.Debug($"[BrokerClient] Status response: status={response.StatusCode}, body length={response.Body?.Length ?? 0}");
+
+            if (string.IsNullOrWhiteSpace(response.Body))
+            {
+                Logger.Error($"[BrokerClient] Empty status response body (status: {response.StatusCode})");
+                return null;
+            }
+
+            var statusResponse = JsonSerializer.Deserialize(response.Body, BrokerJsonContext.Default.BrokerStatusResponse);
+            Logger.Debug($"[BrokerClient] Status: {statusResponse?.Status}, exitCode={statusResponse?.ExitCode}");
+            return statusResponse;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[BrokerClient] Error querying operation status: {ex.Message}");
+            Logger.Error(ex);
+            return null;
+        }
 #endif
     }
 

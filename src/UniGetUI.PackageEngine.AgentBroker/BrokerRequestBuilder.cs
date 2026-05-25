@@ -40,18 +40,16 @@ public static class BrokerRequestBuilder
             {
                 Id = package.Id,
                 Name = package.Name,
-                Version = package.VersionString,
-                NewVersion = package.IsUpgradable ? package.NewVersionString : null
+                Version = string.IsNullOrEmpty(options.Version) ? null : options.Version,
+                Architecture = string.IsNullOrEmpty(options.Architecture) ? null : options.Architecture.ToLowerInvariant(),
             },
             Options = new BrokerRequestOptions
             {
                 Scope = MapScope(options.InstallationScope),
-                Architecture = string.IsNullOrEmpty(options.Architecture) ? null : options.Architecture.ToLowerInvariant(),
                 Interactive = options.InteractiveInstallation,
                 RunAsAdministrator = options.RunAsAdministrator,
                 SkipHashCheck = options.SkipHashCheck,
                 PreRelease = options.PreRelease,
-                Version = string.IsNullOrEmpty(options.Version) ? null : options.Version,
                 CustomParameters = GetCustomParameters(options, role),
                 CustomInstallLocation = string.IsNullOrEmpty(options.CustomInstallLocation) ? null : options.CustomInstallLocation,
                 KillBeforeOperation = options.KillBeforeOperation ?? [],
@@ -62,7 +60,8 @@ public static class BrokerRequestBuilder
             {
                 RequestedElevation = options.RunAsAdministrator ? "elevated" : "standard",
                 EffectiveUser = $"{Environment.UserDomainName}\\{Environment.UserName}",
-                ClientVersion = ClientVersion
+                ClientVersion = ClientVersion,
+                ClientProcessPath = Environment.ProcessPath
             }
         };
 

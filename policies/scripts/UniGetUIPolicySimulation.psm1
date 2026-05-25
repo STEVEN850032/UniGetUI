@@ -317,8 +317,8 @@ function Get-EffectiveRequestVersion {
     if (-not [string]::IsNullOrWhiteSpace([string] (Get-ObjectPropertyValue -InputObject $Request.package -Name "newVersion"))) {
         return [string] $Request.package.newVersion
     }
-    if (-not [string]::IsNullOrWhiteSpace([string] (Get-ObjectPropertyValue -InputObject $Request.package -Name "version"))) {
-        return [string] $Request.package.version
+    if (-not [string]::IsNullOrWhiteSpace([string] (Get-ObjectPropertyValue -InputObject $Request.package -Name "currentVersion"))) {
+        return [string] $Request.package.currentVersion
     }
 
     ""
