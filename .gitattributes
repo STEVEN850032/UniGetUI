@@ -1,2 +1,5 @@
 src/UniGetUI.PackageEngine.Managers.Chocolatey/choco-cli/** linguist-vendored
 .githooks/* text eol=lf
+
+policies/samples/** linguist-generated
+policies/schemas/** linguist-generated
