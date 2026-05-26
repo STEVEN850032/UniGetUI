@@ -47,7 +47,6 @@ public static class BrokerRequestBuilder
             {
                 Scope = MapScope(options.InstallationScope),
                 Interactive = options.InteractiveInstallation,
-                RunAsAdministrator = options.RunAsAdministrator,
                 SkipHashCheck = options.SkipHashCheck,
                 PreRelease = options.PreRelease,
                 CustomParameters = GetCustomParameters(options, role),

@@ -103,9 +103,6 @@ public sealed class PolicyMatch
     [JsonPropertyName("elevation")]
     public List<string>? Elevation { get; set; }
 
-    [JsonPropertyName("runAsAdministrator")]
-    public List<bool>? RunAsAdministrator { get; set; }
-
     [JsonPropertyName("interactive")]
     public List<bool>? Interactive { get; set; }
 
@@ -144,9 +141,6 @@ public sealed class PolicyConstraints
 {
     [JsonPropertyName("allowInteractive")]
     public bool? AllowInteractive { get; set; }
-
-    [JsonPropertyName("allowRunAsAdministrator")]
-    public bool? AllowRunAsAdministrator { get; set; }
 
     [JsonPropertyName("allowSkipHashCheck")]
     public bool? AllowSkipHashCheck { get; set; }
@@ -261,9 +255,6 @@ public sealed class RequestOptions
 
     [JsonPropertyName("interactive")]
     public bool Interactive { get; set; }
-
-    [JsonPropertyName("runAsAdministrator")]
-    public bool RunAsAdministrator { get; set; }
 
     [JsonPropertyName("skipHashCheck")]
     public bool SkipHashCheck { get; set; }

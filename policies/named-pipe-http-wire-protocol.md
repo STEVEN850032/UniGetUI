@@ -157,7 +157,6 @@ The package operation request body is the same canonical document used by the po
     "scope": "machine",
     "architecture": "x64",
     "interactive": false,
-    "runAsAdministrator": true,
     "skipHashCheck": false,
     "preRelease": false,
     "customParameters": [],

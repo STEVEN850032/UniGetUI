@@ -235,7 +235,7 @@ function Assert-UniGetUIRequestShape {
     if ($null -eq $Request.options) {
         throw "Request options object is required."
     }
-    foreach ($boolField in @("interactive", "runAsAdministrator", "skipHashCheck", "preRelease")) {
+    foreach ($boolField in @("interactive", "skipHashCheck", "preRelease")) {
         if ($null -eq $Request.options.$boolField) {
             throw "Request options.$boolField is required."
         }
@@ -433,7 +433,6 @@ function Test-UniGetUIRuleMatch {
         @{ Name = "scopes"; Matched = (Test-ValueInList -Value (Get-ObjectPropertyValue -InputObject $Request.options -Name "scope") -List (Get-ObjectPropertyValue -InputObject $ruleMatch -Name "scopes")) },
         @{ Name = "architectures"; Matched = (Test-ValueInList -Value (Get-ObjectPropertyValue -InputObject $Request.options -Name "architecture") -List (Get-ObjectPropertyValue -InputObject $ruleMatch -Name "architectures")) },
         @{ Name = "elevation"; Matched = (Test-ValueInList -Value $Request.broker.requestedElevation -List (Get-ObjectPropertyValue -InputObject $ruleMatch -Name "elevation")) },
-        @{ Name = "runAsAdministrator"; Matched = (Test-ValueInList -Value ([bool] $Request.options.runAsAdministrator) -List (Get-ObjectPropertyValue -InputObject $ruleMatch -Name "runAsAdministrator")) },
         @{ Name = "interactive"; Matched = (Test-ValueInList -Value ([bool] $Request.options.interactive) -List (Get-ObjectPropertyValue -InputObject $ruleMatch -Name "interactive")) },
         @{ Name = "skipHashCheck"; Matched = (Test-ValueInList -Value ([bool] $Request.options.skipHashCheck) -List (Get-ObjectPropertyValue -InputObject $ruleMatch -Name "skipHashCheck")) },
         @{ Name = "preRelease"; Matched = (Test-ValueInList -Value ([bool] $Request.options.preRelease) -List (Get-ObjectPropertyValue -InputObject $ruleMatch -Name "preRelease")) },
@@ -477,7 +476,6 @@ function Test-UniGetUIRuleConstraints {
 
     $booleanConstraints = @(
         @{ Name = "allowInteractive"; IsRisky = [bool] $Request.options.interactive; Description = "interactive installation" },
-        @{ Name = "allowRunAsAdministrator"; IsRisky = [bool] $Request.options.runAsAdministrator; Description = "administrator execution" },
         @{ Name = "allowSkipHashCheck"; IsRisky = [bool] $Request.options.skipHashCheck; Description = "integrity or publisher bypass" },
         @{ Name = "allowPreRelease"; IsRisky = [bool] $Request.options.preRelease; Description = "prerelease package" },
         @{ Name = "allowCustomInstallLocation"; IsRisky = [bool] $Flags.HasCustomInstallLocation; Description = "custom install location" },

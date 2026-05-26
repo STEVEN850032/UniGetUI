@@ -168,7 +168,6 @@ A request file models what the unelevated executable asks the elevated broker to
     "scope": "machine",
     "architecture": "x64",
     "interactive": false,
-    "runAsAdministrator": true,
     "skipHashCheck": false,
     "preRelease": false,
     "customParameters": []

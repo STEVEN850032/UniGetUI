@@ -102,9 +102,6 @@ public sealed class BrokerRequestOptions
     [JsonPropertyName("interactive")]
     public bool Interactive { get; set; }
 
-    [JsonPropertyName("runAsAdministrator")]
-    public bool RunAsAdministrator { get; set; }
-
     [JsonPropertyName("skipHashCheck")]
     public bool SkipHashCheck { get; set; }
 

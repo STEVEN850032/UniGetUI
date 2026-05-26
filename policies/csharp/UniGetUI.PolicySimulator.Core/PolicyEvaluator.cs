@@ -80,7 +80,6 @@ public sealed class PolicyEvaluator
             ValueInList(request.Options.Scope, rule.Match.Scopes) &&
             ValueInList(request.Package.Architecture, rule.Match.Architectures) &&
             ValueInList(request.Broker.RequestedElevation, rule.Match.Elevation) &&
-            ValueInList(request.Options.RunAsAdministrator, rule.Match.RunAsAdministrator) &&
             ValueInList(request.Options.Interactive, rule.Match.Interactive) &&
             ValueInList(request.Options.SkipHashCheck, rule.Match.SkipHashCheck) &&
             ValueInList(request.Options.PreRelease, rule.Match.PreRelease) &&
@@ -95,7 +94,6 @@ public sealed class PolicyEvaluator
     {
         if (constraints is null) return true;
         if (constraints.AllowInteractive == false && request.Options.Interactive) return false;
-        if (constraints.AllowRunAsAdministrator == false && request.Options.RunAsAdministrator) return false;
         if (constraints.AllowSkipHashCheck == false && request.Options.SkipHashCheck) return false;
         if (constraints.AllowPreRelease == false && request.Options.PreRelease) return false;
         if (constraints.AllowCustomInstallLocation == false && flags.HasCustomInstallLocation) return false;
