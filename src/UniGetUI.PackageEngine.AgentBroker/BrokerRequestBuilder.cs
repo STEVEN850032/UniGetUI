@@ -41,7 +41,7 @@ public static class BrokerRequestBuilder
                 Id = package.Id,
                 Name = package.Name,
                 Version = string.IsNullOrEmpty(options.Version) ? null : options.Version,
-                Architecture = string.IsNullOrEmpty(options.Architecture) ? null : options.Architecture.ToLowerInvariant(),
+                Architecture = string.IsNullOrEmpty(options.Architecture) ? null : options.Architecture,
             },
             Options = new BrokerRequestOptions
             {
@@ -57,7 +57,7 @@ public static class BrokerRequestBuilder
             },
             Broker = new BrokerRequestContext
             {
-                RequestedElevation = options.RunAsAdministrator ? "elevated" : "standard",
+                RequestedElevation = options.RunAsAdministrator ? "Elevated" : "Standard",
                 EffectiveUser = $"{Environment.UserDomainName}\\{Environment.UserName}",
                 ClientVersion = ClientVersion,
                 ClientProcessPath = Environment.ProcessPath
@@ -69,9 +69,9 @@ public static class BrokerRequestBuilder
 
     private static string MapOperation(OperationType role) => role switch
     {
-        OperationType.Install => "install",
-        OperationType.Update => "update",
-        OperationType.Uninstall => "uninstall",
+        OperationType.Install => "Install",
+        OperationType.Update => "Update",
+        OperationType.Uninstall => "Uninstall",
         _ => throw new ArgumentException($"Unsupported operation type: {role}")
     };
 
@@ -97,9 +97,9 @@ public static class BrokerRequestBuilder
         if (string.IsNullOrEmpty(scope)) return null;
         return scope.ToLowerInvariant() switch
         {
-            "user" => "user",
-            "machine" => "machine",
-            "global" => "machine",
+            "user" => "User",
+            "machine" => "Machine",
+            "global" => "Machine",
             _ => scope.ToLowerInvariant()
         };
     }

@@ -78,7 +78,7 @@ public class BrokerModelDeserializationTests
         Assert.Equal("Microsoft.VisualStudioCode", request.Package.Id);
         Assert.Equal("x64", request.Package.Architecture);
         Assert.Equal("machine", request.Options.Scope);
-        Assert.Equal("elevated", request.Broker.RequestedElevation);
+        Assert.Equal("Elevated", request.Broker.RequestedElevation);
         Assert.Equal("CONTOSO\\alice", request.Broker.EffectiveUser);
 
         // Round-trip: serialize back and re-parse

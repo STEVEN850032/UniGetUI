@@ -15,58 +15,58 @@ public sealed class BrokerRequest
     [JsonPropertyName("$schema")]
     public string Schema { get; set; } = "https://aka.ms/unigetui/package-request.schema.1.0.json";
 
-    [JsonPropertyName("requestVersion")]
+    [JsonPropertyName("RequestVersion")]
     public string RequestVersion { get; set; } = "1.0.0";
 
-    [JsonPropertyName("requestType")]
-    public string RequestType { get; set; } = "packageOperation";
+    [JsonPropertyName("RequestType")]
+    public string RequestType { get; set; } = "PackageOperation";
 
-    [JsonPropertyName("requestId")]
+    [JsonPropertyName("RequestId")]
     public string RequestId { get; set; } = "";
 
-    [JsonPropertyName("createdAt")]
+    [JsonPropertyName("CreatedAt")]
     public string CreatedAt { get; set; } = "";
 
-    [JsonPropertyName("operation")]
+    [JsonPropertyName("Operation")]
     public string Operation { get; set; } = "";
 
-    [JsonPropertyName("manager")]
+    [JsonPropertyName("Manager")]
     public BrokerRequestManager Manager { get; set; } = new();
 
-    [JsonPropertyName("source")]
+    [JsonPropertyName("Source")]
     public BrokerRequestSource Source { get; set; } = new();
 
-    [JsonPropertyName("package")]
+    [JsonPropertyName("Package")]
     public BrokerRequestPackage Package { get; set; } = new();
 
-    [JsonPropertyName("options")]
+    [JsonPropertyName("Options")]
     public BrokerRequestOptions Options { get; set; } = new();
 
-    [JsonPropertyName("broker")]
+    [JsonPropertyName("Broker")]
     public BrokerRequestContext Broker { get; set; } = new();
 }
 
 public sealed class BrokerRequestManager
 {
-    [JsonPropertyName("name")]
+    [JsonPropertyName("Name")]
     public string Name { get; set; } = "";
 
-    [JsonPropertyName("displayName")]
+    [JsonPropertyName("DisplayName")]
     public string DisplayName { get; set; } = "";
 
-    [JsonPropertyName("executableFriendlyName")]
+    [JsonPropertyName("ExecutableFriendlyName")]
     public string ExecutableFriendlyName { get; set; } = "";
 }
 
 public sealed class BrokerRequestSource
 {
-    [JsonPropertyName("name")]
+    [JsonPropertyName("Name")]
     public string Name { get; set; } = "";
 
-    [JsonPropertyName("url")]
+    [JsonPropertyName("Url")]
     public string? Url { get; set; }
 
-    [JsonPropertyName("isVirtualManager")]
+    [JsonPropertyName("IsVirtualManager")]
     public bool? IsVirtualManager { get; set; }
 }
 
@@ -75,19 +75,19 @@ public sealed class BrokerRequestSource
 /// </summary>
 public sealed class BrokerRequestPackage
 {
-    [JsonPropertyName("id")]
+    [JsonPropertyName("Id")]
     public string Id { get; set; } = "";
 
-    [JsonPropertyName("name")]
+    [JsonPropertyName("Name")]
     public string Name { get; set; } = "";
 
-    [JsonPropertyName("version")]
+    [JsonPropertyName("Version")]
     public string? Version { get; set; }
 
-    [JsonPropertyName("architecture")]
+    [JsonPropertyName("Architecture")]
     public string? Architecture { get; set; }
 
-    [JsonPropertyName("channel")]
+    [JsonPropertyName("Channel")]
     public string? Channel { get; set; }
 }
 
@@ -96,52 +96,52 @@ public sealed class BrokerRequestPackage
 /// </summary>
 public sealed class BrokerRequestOptions
 {
-    [JsonPropertyName("scope")]
+    [JsonPropertyName("Scope")]
     public string? Scope { get; set; }
 
-    [JsonPropertyName("interactive")]
+    [JsonPropertyName("Interactive")]
     public bool Interactive { get; set; }
 
-    [JsonPropertyName("skipHashCheck")]
+    [JsonPropertyName("SkipHashCheck")]
     public bool SkipHashCheck { get; set; }
 
-    [JsonPropertyName("preRelease")]
+    [JsonPropertyName("PreRelease")]
     public bool PreRelease { get; set; }
 
-    [JsonPropertyName("uninstallPrevious")]
+    [JsonPropertyName("UninstallPrevious")]
     public bool UninstallPrevious { get; set; }
 
-    [JsonPropertyName("noUpgrade")]
+    [JsonPropertyName("NoUpgrade")]
     public bool NoUpgrade { get; set; }
 
-    [JsonPropertyName("customParameters")]
+    [JsonPropertyName("CustomParameters")]
     public List<string> CustomParameters { get; set; } = [];
 
-    [JsonPropertyName("customInstallLocation")]
+    [JsonPropertyName("CustomInstallLocation")]
     public string? CustomInstallLocation { get; set; }
 
-    [JsonPropertyName("killBeforeOperation")]
+    [JsonPropertyName("KillBeforeOperation")]
     public List<string> KillBeforeOperation { get; set; } = [];
 
-    [JsonPropertyName("preOperationCommand")]
+    [JsonPropertyName("PreOperationCommand")]
     public string? PreOperationCommand { get; set; }
 
-    [JsonPropertyName("postOperationCommand")]
+    [JsonPropertyName("PostOperationCommand")]
     public string? PostOperationCommand { get; set; }
 }
 
 public sealed class BrokerRequestContext
 {
-    [JsonPropertyName("requestedElevation")]
-    public string RequestedElevation { get; set; } = "elevated";
+    [JsonPropertyName("RequestedElevation")]
+    public string RequestedElevation { get; set; } = "Elevated";
 
-    [JsonPropertyName("effectiveUser")]
+    [JsonPropertyName("EffectiveUser")]
     public string EffectiveUser { get; set; } = "";
 
-    [JsonPropertyName("clientVersion")]
+    [JsonPropertyName("ClientVersion")]
     public string? ClientVersion { get; set; }
 
-    [JsonPropertyName("clientProcessPath")]
+    [JsonPropertyName("ClientProcessPath")]
     public string? ClientProcessPath { get; set; }
 }
 
@@ -157,97 +157,97 @@ public sealed class BrokerResponse
     [JsonPropertyName("$schema")]
     public string? Schema { get; set; }
 
-    [JsonPropertyName("responseVersion")]
+    [JsonPropertyName("ResponseVersion")]
     public string ResponseVersion { get; set; } = "";
 
-    [JsonPropertyName("responseType")]
+    [JsonPropertyName("ResponseType")]
     public string ResponseType { get; set; } = "";
 
-    [JsonPropertyName("broker")]
+    [JsonPropertyName("Broker")]
     public BrokerResponseInfo? Broker { get; set; }
 
-    [JsonPropertyName("auditId")]
+    [JsonPropertyName("AuditId")]
     public string AuditId { get; set; } = "";
 
-    [JsonPropertyName("requestId")]
+    [JsonPropertyName("RequestId")]
     public string RequestId { get; set; } = "";
 
-    [JsonPropertyName("receivedAt")]
+    [JsonPropertyName("ReceivedAt")]
     public string ReceivedAt { get; set; } = "";
 
-    [JsonPropertyName("completedAt")]
+    [JsonPropertyName("CompletedAt")]
     public string CompletedAt { get; set; } = "";
 
-    [JsonPropertyName("manager")]
+    [JsonPropertyName("Manager")]
     public string? Manager { get; set; }
 
-    [JsonPropertyName("source")]
+    [JsonPropertyName("Source")]
     public string? Source { get; set; }
 
-    [JsonPropertyName("packageId")]
+    [JsonPropertyName("PackageId")]
     public string? PackageId { get; set; }
 
-    [JsonPropertyName("operation")]
+    [JsonPropertyName("Operation")]
     public string? Operation { get; set; }
 
-    [JsonPropertyName("decision")]
+    [JsonPropertyName("Decision")]
     public string Decision { get; set; } = "";
 
-    [JsonPropertyName("ruleId")]
+    [JsonPropertyName("RuleId")]
     public string RuleId { get; set; } = "";
 
-    [JsonPropertyName("reason")]
+    [JsonPropertyName("Reason")]
     public string Reason { get; set; } = "";
 
-    [JsonPropertyName("wouldExecute")]
+    [JsonPropertyName("WouldExecute")]
     public bool WouldExecute { get; set; }
 
-    [JsonPropertyName("policy")]
+    [JsonPropertyName("Policy")]
     public BrokerPolicyInfo? Policy { get; set; }
 
-    [JsonPropertyName("execution")]
+    [JsonPropertyName("Execution")]
     public BrokerExecutionInfo? Execution { get; set; }
 }
 
 public sealed class BrokerResponseInfo
 {
-    [JsonPropertyName("name")]
+    [JsonPropertyName("Name")]
     public string Name { get; set; } = "";
 
-    [JsonPropertyName("protocolVersion")]
+    [JsonPropertyName("ProtocolVersion")]
     public string ProtocolVersion { get; set; } = "";
 
-    [JsonPropertyName("transport")]
+    [JsonPropertyName("Transport")]
     public string Transport { get; set; } = "";
 
-    [JsonPropertyName("pipeName")]
+    [JsonPropertyName("PipeName")]
     public string? PipeName { get; set; }
 
-    [JsonPropertyName("elevatedSimulation")]
+    [JsonPropertyName("ElevatedSimulation")]
     public bool ElevatedSimulation { get; set; }
 }
 
 public sealed class BrokerPolicyInfo
 {
-    [JsonPropertyName("id")]
+    [JsonPropertyName("Id")]
     public string Id { get; set; } = "";
 
-    [JsonPropertyName("revision")]
+    [JsonPropertyName("Revision")]
     public int Revision { get; set; }
 
-    [JsonPropertyName("policyVersion")]
+    [JsonPropertyName("PolicyVersion")]
     public string PolicyVersion { get; set; } = "";
 }
 
 public sealed class BrokerExecutionInfo
 {
-    [JsonPropertyName("mode")]
+    [JsonPropertyName("Mode")]
     public string Mode { get; set; } = "";
 
-    [JsonPropertyName("command")]
+    [JsonPropertyName("Command")]
     public List<string> Command { get; set; } = [];
 
-    [JsonPropertyName("note")]
+    [JsonPropertyName("Note")]
     public string Note { get; set; } = "";
 }
 
@@ -263,16 +263,16 @@ public sealed class BrokerStatusRequest
     [JsonPropertyName("$schema")]
     public string Schema { get; set; } = "https://aka.ms/unigetui/package-operation-status-request.schema.1.0.json";
 
-    [JsonPropertyName("requestVersion")]
+    [JsonPropertyName("RequestVersion")]
     public string RequestVersion { get; set; } = "1.0.0";
 
-    [JsonPropertyName("requestType")]
-    public string RequestType { get; set; } = "packageOperationStatus";
+    [JsonPropertyName("RequestType")]
+    public string RequestType { get; set; } = "PackageOperationStatus";
 
-    [JsonPropertyName("requestId")]
+    [JsonPropertyName("RequestId")]
     public string RequestId { get; set; } = "";
 
-    [JsonPropertyName("broker")]
+    [JsonPropertyName("Broker")]
     public BrokerRequestContext Broker { get; set; } = new();
 }
 
@@ -284,31 +284,31 @@ public sealed class BrokerStatusResponse
     [JsonPropertyName("$schema")]
     public string? Schema { get; set; }
 
-    [JsonPropertyName("responseVersion")]
+    [JsonPropertyName("ResponseVersion")]
     public string ResponseVersion { get; set; } = "";
 
-    [JsonPropertyName("responseType")]
+    [JsonPropertyName("ResponseType")]
     public string ResponseType { get; set; } = "";
 
-    [JsonPropertyName("broker")]
+    [JsonPropertyName("Broker")]
     public BrokerResponseInfo? Broker { get; set; }
 
-    [JsonPropertyName("requestId")]
+    [JsonPropertyName("RequestId")]
     public string RequestId { get; set; } = "";
 
-    [JsonPropertyName("status")]
+    [JsonPropertyName("Status")]
     public string Status { get; set; } = "";
 
-    [JsonPropertyName("startedAt")]
+    [JsonPropertyName("StartedAt")]
     public string? StartedAt { get; set; }
 
-    [JsonPropertyName("completedAt")]
+    [JsonPropertyName("CompletedAt")]
     public string? CompletedAt { get; set; }
 
-    [JsonPropertyName("exitCode")]
+    [JsonPropertyName("ExitCode")]
     public int? ExitCode { get; set; }
 
-    [JsonPropertyName("note")]
+    [JsonPropertyName("Note")]
     public string? Note { get; set; }
 }
 
@@ -320,3 +320,4 @@ public sealed class BrokerStatusResponse
 [JsonSerializable(typeof(BrokerStatusRequest))]
 [JsonSerializable(typeof(BrokerStatusResponse))]
 public sealed partial class BrokerJsonContext : JsonSerializerContext;
+
