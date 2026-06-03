@@ -77,7 +77,7 @@ public static class BrokerRequestBuilder
 
     /// <summary>
     /// Maps UniGetUI manager names to the broker protocol canonical names.
-    /// Only WinGet is supported in this iteration.
+    /// PowerShell 5 and PowerShell 7 are modeled as separate managers.
     /// </summary>
     private static string MapManagerName(string managerName)
     {
@@ -86,6 +86,17 @@ public static class BrokerRequestBuilder
             managerName.Equals("WinGet", StringComparison.OrdinalIgnoreCase))
         {
             return "Winget";
+        }
+
+        if (managerName.Equals("PowerShell", StringComparison.OrdinalIgnoreCase))
+        {
+            return "PowerShell";
+        }
+
+        if (managerName.Equals("PowerShell7", StringComparison.OrdinalIgnoreCase) ||
+            managerName.Equals("pwsh", StringComparison.OrdinalIgnoreCase))
+        {
+            return "PowerShell7";
         }
 
         // Return as-is for unsupported managers (broker will reject).
@@ -100,7 +111,7 @@ public static class BrokerRequestBuilder
             "user" => "User",
             "machine" => "Machine",
             "global" => "Machine",
-            _ => scope.ToLowerInvariant()
+            _ => scope
         };
     }
 
