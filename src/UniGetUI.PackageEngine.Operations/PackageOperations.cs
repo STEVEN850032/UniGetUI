@@ -5,6 +5,9 @@ using UniGetUI.Core.SettingsEngine;
 using UniGetUI.Core.Tools;
 using UniGetUI.Interface.Enums;
 using UniGetUI.PackageEngine.AgentBroker;
+// Aliased to avoid clashing with UniGetUI.PackageEngine.Enums.OperationStatus.
+using BrokerClient = Devolutions.UniGetUI.Broker.Client.BrokerClient;
+using BrokerOperationStatus = Devolutions.UniGetUI.Broker.Client.OperationStatus;
 using UniGetUI.PackageEngine.Classes.Packages.Classes;
 using UniGetUI.PackageEngine.Enums;
 using UniGetUI.PackageEngine.Interfaces;
@@ -234,7 +237,7 @@ namespace UniGetUI.PackageEngine.Operations
                 Line($"  Note: {status.Note}", LineType.Information);
             }
 
-            if (status.Status == "completed" && status.ExitCode == 0)
+            if (status.Status == BrokerOperationStatus.Completed && status.ExitCode == 0)
             {
                 Line("Operation completed successfully via agent broker.", LineType.Information);
                 return OperationVeredict.Success;

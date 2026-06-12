@@ -6,6 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Canonical broker client + DTOs, sourced from the devolutions-gateway repo. -->
+    <PackageReference Include="Devolutions.UniGetUI.Broker.Client" Version="2026.6.10" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\UniGetUI.Core.Logger\UniGetUI.Core.Logging.csproj" />
     <ProjectReference Include="..\UniGetUI.Core.Settings\UniGetUI.Core.Settings.csproj" />
     <ProjectReference Include="..\UniGetUI.PackageEngine.Enums\UniGetUI.PackageEngine.Structs.csproj" />
