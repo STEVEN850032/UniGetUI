@@ -89,7 +89,7 @@ public sealed class PackageWrapper : INotifyPropertyChanged, IDisposable
             IconType.AddTo => "add_to",
             _ => icon.ToString().ToLowerInvariant(),
         };
-        return $"avares://UniGetUI.Avalonia/Assets/Symbols/{name}.svg";
+        return $"avares://UniGetUI/Assets/Symbols/{name}.svg";
     }
 
     public PackageWrapper(IPackage package, PackagesPageViewModel page)
@@ -282,7 +282,7 @@ public sealed class PackageWrapper : INotifyPropertyChanged, IDisposable
         };
         TagIconVisible = tagName.Length > 0;
         TagIconPath = TagIconVisible
-            ? $"avares://UniGetUI.Avalonia/Assets/Symbols/{tagName}.svg"
+            ? $"avares://UniGetUI/Assets/Symbols/{tagName}.svg"
             : "";
     }
 

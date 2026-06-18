@@ -120,7 +120,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="6"
                                                 automation:AutomationProperties.Name="{Binding AutomationName}"
                                                 VerticalAlignment="Center" Margin="0,0,4,0">
-                                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/package.svg"
+                                        <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/package.svg"
                                                           Width="16" Height="16" VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
                                                    TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}"/>
@@ -136,7 +136,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="6"
                                                 automation:AutomationProperties.Name="{Binding Id}"
                                                 VerticalAlignment="Center" Margin="0,0,4,0">
-                                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/id.svg"
+                                        <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/id.svg"
                                                           Width="16" Height="16" VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding Id}" VerticalAlignment="Center"
                                                    TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Id}"/>
@@ -152,7 +152,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="6"
                                                 automation:AutomationProperties.Name="{Binding VersionDisplay}"
                                                 VerticalAlignment="Center" Margin="0,0,4,0">
-                                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/version.svg"
+                                        <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/version.svg"
                                                           Width="16" Height="16" VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding VersionDisplay}" VerticalAlignment="Center"
                                                    TextTrimming="CharacterEllipsis"/>
@@ -168,7 +168,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="6"
                                                 automation:AutomationProperties.Name="{Binding NewVersion}"
                                                 VerticalAlignment="Center" Margin="0,0,4,0">
-                                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/upgradable.svg"
+                                        <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/upgradable.svg"
                                                           Width="16" Height="16" VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding NewVersion}" VerticalAlignment="Center"
                                                    TextTrimming="CharacterEllipsis"/>
@@ -206,7 +206,7 @@
                                             Command="{Binding RemoveCommand}"
                                             automation:AutomationProperties.Name="{Binding RemoveAutomationName}"
                                             ToolTip.Tip="{t:Translate Text='Remove from list'}">
-                                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/delete.svg"
+                                        <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/delete.svg"
                                                           Width="16" Height="16"/>
                                     </Button>
                                 </DataTemplate>

@@ -111,7 +111,7 @@
                               automation:AutomationProperties.Name="{t:Translate Filters}"
                               IsChecked="{Binding IsFilterPaneOpen, Mode=TwoWay}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/Filter.svg" Width="20" Height="20" VerticalAlignment="Center"/>
+                        <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/Filter.svg" Width="20" Height="20" VerticalAlignment="Center"/>
                         <TextBlock Text="{t:Translate Filters}" FontSize="12" FontWeight="Medium" VerticalAlignment="Center"/>
                     </StackPanel>
                 </ToggleButton>
@@ -193,7 +193,7 @@
                                   Background="{DynamicResource SettingsCardBackground}">
                             <Expander.Header>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/Sources.svg" Width="16" Height="16" VerticalAlignment="Center"/>
+                                    <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/Sources.svg" Width="16" Height="16" VerticalAlignment="Center"/>
                                     <TextBlock Text="{t:Translate Sources}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Expander.Header>
@@ -312,7 +312,7 @@
                                   Background="{DynamicResource SettingsCardBackground}">
                             <Expander.Header>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/Filter.svg" Width="16" Height="16" VerticalAlignment="Center"/>
+                                    <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/Filter.svg" Width="16" Height="16" VerticalAlignment="Center"/>
                                     <TextBlock Text="{t:Translate Filters}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Expander.Header>
@@ -344,7 +344,7 @@
                                   Background="{DynamicResource SettingsCardBackground}">
                             <Expander.Header>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/search_filled.svg" Width="16" Height="16" VerticalAlignment="Center"/>
+                                    <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/search_filled.svg" Width="16" Height="16" VerticalAlignment="Center"/>
                                     <TextBlock Text="{t:Translate Search mode}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Expander.Header>
@@ -474,7 +474,7 @@
                                                 <Panel Width="24" Height="24" VerticalAlignment="Center">
                                                     <Image Source="{Binding IconBitmap}" Width="24" Height="24"
                                                            Stretch="Uniform" IsVisible="{Binding HasCustomIcon}"/>
-                                                    <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/package.svg"
+                                                    <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/package.svg"
                                                                       Width="24" Height="24" IsVisible="{Binding !HasCustomIcon}"/>
                                                     <controls:SvgIcon Path="{Binding TagIconPath}"
                                                                       Width="12" Height="12"
@@ -493,7 +493,7 @@
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate x:DataType="pkg:PackageWrapper">
                                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="4,0">
-                                                <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/id.svg"
+                                                <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/id.svg"
                                                                   Width="24" Height="24" VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding Package.Id}" VerticalAlignment="Center"/>
                                             </StackPanel>
@@ -506,7 +506,7 @@
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate x:DataType="pkg:PackageWrapper">
                                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="4,0">
-                                                <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/version.svg"
+                                                <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/version.svg"
                                                                   Width="24" Height="24" VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding VersionComboString}" VerticalAlignment="Center"/>
                                             </StackPanel>
@@ -520,10 +520,10 @@
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate x:DataType="pkg:PackageWrapper">
                                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="4,0">
-                                                <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/download.svg"
+                                                <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/download.svg"
                                                                   Width="24" Height="24" VerticalAlignment="Center"
                                                                   IsVisible="{Binding !InstallerHostChanged}"/>
-                                                <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/warning_filled.svg"
+                                                <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/warning_filled.svg"
                                                                   Width="22" Height="22" VerticalAlignment="Center"
                                                                   Foreground="#F59E0B"
                                                                   IsVisible="{Binding InstallerHostChanged}"
@@ -587,14 +587,14 @@
                                                        VerticalAlignment="Center" HorizontalAlignment="Center">
                                                     <Image Source="{Binding IconBitmap}" Width="44" Height="44"
                                                            Stretch="Uniform" IsVisible="{Binding HasCustomIcon}"/>
-                                                    <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/package.svg"
+                                                    <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/package.svg"
                                                                       Width="44" Height="44" IsVisible="{Binding !HasCustomIcon}"/>
                                                     <controls:SvgIcon Path="{Binding TagIconPath}"
                                                                       Width="17" Height="17"
                                                                       IsVisible="{Binding TagIconVisible}"
                                                                       HorizontalAlignment="Right"
                                                                       VerticalAlignment="Bottom"/>
-                                                    <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/warning_filled.svg"
+                                                    <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/warning_filled.svg"
                                                                       Width="17" Height="17"
                                                                       Foreground="#F59E0B"
                                                                       IsVisible="{Binding InstallerHostChanged}"
@@ -687,14 +687,14 @@
                                                        VerticalAlignment="Center" HorizontalAlignment="Center">
                                                     <Image Source="{Binding IconBitmap}" Width="64" Height="64"
                                                            Stretch="Uniform" IsVisible="{Binding HasCustomIcon}"/>
-                                                    <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/package.svg"
+                                                    <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/package.svg"
                                                                       Width="64" Height="64" IsVisible="{Binding !HasCustomIcon}"/>
                                                     <controls:SvgIcon Path="{Binding TagIconPath}"
                                                                       Width="24" Height="24"
                                                                       IsVisible="{Binding TagIconVisible}"
                                                                       HorizontalAlignment="Right"
                                                                       VerticalAlignment="Bottom"/>
-                                                    <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/warning_filled.svg"
+                                                    <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/warning_filled.svg"
                                                                       Width="24" Height="24"
                                                                       Foreground="#F59E0B"
                                                                       IsVisible="{Binding InstallerHostChanged}"
@@ -772,7 +772,7 @@
                                     Background="Transparent"
                                     automation:AutomationProperties.Name="{t:Translate Search for packages}"
                                     Command="{Binding SubmitSearch}">
-                                <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/search.svg" Width="40" Height="40"/>
+                                <controls:SvgIcon Path="avares://UniGetUI/Assets/Symbols/search.svg" Width="40" Height="40"/>
                             </Button>
                         </Grid>
                     </Border>
