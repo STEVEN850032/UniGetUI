@@ -1,7 +1,11 @@
 using Avalonia;
+using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Media;
+using Avalonia.Styling;
 using UniGetUI.Avalonia.ViewModels;
 
 namespace UniGetUI.Avalonia.Views;
@@ -87,6 +91,22 @@ public partial class SidebarView : BaseView<SidebarViewModel>
         if (Enum.TryParse<PageType>(tag, out var pageType))
             ViewModel?.RequestNavigation(pageType.ToString());
     }
+
+    // One full gear rotation on click, mirroring the spin of WinUI's AnimatedSettingsVisualSource.
+    // The TransformAnimator manages the icon's RenderTransform, so the animation runs on the Visual itself.
+    private readonly Animation _settingsIconSpin = new()
+    {
+        Duration = TimeSpan.FromSeconds(0.5),
+        Easing = new CubicEaseOut(),
+        Children =
+        {
+            new KeyFrame { Cue = new Cue(0d), Setters = { new Setter(RotateTransform.AngleProperty, 0d) } },
+            new KeyFrame { Cue = new Cue(1d), Setters = { new Setter(RotateTransform.AngleProperty, 360d) } },
+        },
+    };
+
+    private void SettingsNavBtn_Tapped(object? sender, TappedEventArgs e)
+        => _ = _settingsIconSpin.RunAsync(SettingsIcon);
 
     public void FocusSelectedItem()
     {

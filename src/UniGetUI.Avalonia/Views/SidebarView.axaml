@@ -161,11 +161,12 @@
 
                 <!-- Settings -->
                 <ListBoxItem x:Name="SettingsNavBtn" Tag="Settings" Classes="nav-item" Padding="4,2" CornerRadius="6"
+                             Tapped="SettingsNavBtn_Tapped"
                              automation:AutomationProperties.Name="{t:Translate Settings}"
                              automation:AutomationProperties.AcceleratorKey="Ctrl+5"
                              ToolTip.Tip="{t:Translate Settings}">
                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="8,6">
-                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/settings.svg" Width="24" Height="24" VerticalAlignment="Center"/>
+                        <controls:SvgIcon x:Name="SettingsIcon" Path="avares://UniGetUI.Avalonia/Assets/Symbols/settings.svg" Width="24" Height="24" VerticalAlignment="Center" RenderTransformOrigin="50%,50%"/>
                         <TextBlock Text="{t:Translate Settings}" FontSize="14" VerticalAlignment="Center"
                                    IsVisible="{Binding $parent[local:SidebarView].ShowLabels}"/>
                     </StackPanel>
