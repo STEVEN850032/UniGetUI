@@ -859,17 +859,17 @@
                         Orientation="Horizontal"
                         Spacing="4"
                         VerticalAlignment="Center">
-                <TextBlock x:Name="OrderByLabel" Text="{t:Translate Order by:}" FontSize="12" VerticalAlignment="Center"/>
+                <TextBlock x:Name="OrderByLabel" Text="{t:Translate Order by:}" FontSize="13" VerticalAlignment="Center"/>
                 <Button x:Name="OrderByButton"
-                        Padding="8,3"
+                        Padding="10,6"
                         CornerRadius="4"
                         Background="Transparent"
                         BorderThickness="1"
                         BorderBrush="{DynamicResource AppBorderBrush}"
                         automation:AutomationProperties.LabeledBy="{Binding #OrderByLabel}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock Text="{Binding SortFieldName}" VerticalAlignment="Center" FontSize="13"/>
-                        <Path Data="M 0,0 L 4,4 L 8,0"
+                        <TextBlock Text="{Binding SortFieldName}" VerticalAlignment="Center" FontSize="14"/>
+                        <Path Data="M 0,0 L 5,5 L 10,0"
                               Stroke="{DynamicResource TextFillColorPrimaryBrush}"
                               StrokeThickness="1.5"
                               StrokeJoin="Miter"
@@ -911,45 +911,48 @@
                             <StackPanel Orientation="Horizontal"/>
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
-                    <ListBoxItem x:Name="Selector_List" Padding="8,3" ToolTip.Tip="List"
+                    <ListBoxItem x:Name="Selector_List" Classes="segment-item" Padding="8,4,8,8" ToolTip.Tip="List"
                                  automation:AutomationProperties.Name="List">
-                        <Grid Width="16" Height="16"
-                              automation:AutomationProperties.AccessibilityView="Raw">
-                            <!-- bullets -->
-                            <Path Data="M 3,3 m -1.2,0 a 1.2,1.2 0 1,0 2.4,0 a 1.2,1.2 0 1,0 -2.4,0
-                                        M 3,8 m -1.2,0 a 1.2,1.2 0 1,0 2.4,0 a 1.2,1.2 0 1,0 -2.4,0
-                                        M 3,13 m -1.2,0 a 1.2,1.2 0 1,0 2.4,0 a 1.2,1.2 0 1,0 -2.4,0"
-                                  Fill="{DynamicResource TextFillColorPrimaryBrush}"/>
-                            <!-- lines -->
-                            <Path Data="M 6,3 H 14 M 6,8 H 14 M 6,13 H 14"
-                                  Stroke="{DynamicResource TextFillColorPrimaryBrush}"
-                                  StrokeThickness="1.5"
-                                  StrokeLineCap="Round"
-                                  Fill="Transparent"/>
-                        </Grid>
+                        <Viewbox Width="18" Height="18" automation:AutomationProperties.AccessibilityView="Raw">
+                            <Grid Width="16" Height="16">
+                                <!-- bullets -->
+                                <Path Data="M 3,3 m -1.2,0 a 1.2,1.2 0 1,0 2.4,0 a 1.2,1.2 0 1,0 -2.4,0
+                                            M 3,8 m -1.2,0 a 1.2,1.2 0 1,0 2.4,0 a 1.2,1.2 0 1,0 -2.4,0
+                                            M 3,13 m -1.2,0 a 1.2,1.2 0 1,0 2.4,0 a 1.2,1.2 0 1,0 -2.4,0"
+                                      Fill="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                <!-- lines -->
+                                <Path Data="M 6,3 H 14 M 6,8 H 14 M 6,13 H 14"
+                                      Stroke="{DynamicResource TextFillColorPrimaryBrush}"
+                                      StrokeThickness="1.5"
+                                      StrokeLineCap="Round"
+                                      Fill="Transparent"/>
+                            </Grid>
+                        </Viewbox>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="Selector_Grid" Padding="8,3" ToolTip.Tip="Grid"
+                    <ListBoxItem x:Name="Selector_Grid" Classes="segment-item" Padding="8,4,8,8" ToolTip.Tip="Grid"
                                  automation:AutomationProperties.Name="Grid">
                         <!-- Two rows: open "[" bracket on the left + two stacked lines on the right -->
-                        <Path Width="16" Height="16"
-                              Data="M 4,2 H 2 V 6 H 4   M 6,3 H 14   M 6,5 H 14
-                                    M 4,10 H 2 V 14 H 4 M 6,11 H 14  M 6,13 H 14"
-                              Stroke="{DynamicResource TextFillColorPrimaryBrush}"
-                              StrokeThickness="1"
-                              StrokeLineCap="Round"
-                              StrokeJoin="Miter"
-                              Fill="Transparent"
-                              automation:AutomationProperties.AccessibilityView="Raw"/>
+                        <Viewbox Width="18" Height="18" automation:AutomationProperties.AccessibilityView="Raw">
+                            <Path Width="16" Height="16"
+                                  Data="M 4,2 H 2 V 6 H 4   M 6,3 H 14   M 6,5 H 14
+                                        M 4,10 H 2 V 14 H 4 M 6,11 H 14  M 6,13 H 14"
+                                  Stroke="{DynamicResource TextFillColorPrimaryBrush}"
+                                  StrokeThickness="1"
+                                  StrokeLineCap="Round"
+                                  StrokeJoin="Miter"
+                                  Fill="Transparent"/>
+                        </Viewbox>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="Selector_Icons" Padding="8,3" ToolTip.Tip="Icons"
+                    <ListBoxItem x:Name="Selector_Icons" Classes="segment-item" Padding="8,4,8,8" ToolTip.Tip="Icons"
                                  automation:AutomationProperties.Name="Icons">
                         <!-- 2x2 hollow squares (WinUI IconView) with extra gap between -->
-                        <Path Width="16" Height="16"
-                              Data="M 2,2 H 6 V 6 H 2 Z M 10,2 H 14 V 6 H 10 Z M 2,10 H 6 V 14 H 2 Z M 10,10 H 14 V 14 H 10 Z"
-                              Stroke="{DynamicResource TextFillColorPrimaryBrush}"
-                              StrokeThickness="1.3"
-                              Fill="Transparent"
-                              automation:AutomationProperties.AccessibilityView="Raw"/>
+                        <Viewbox Width="18" Height="18" automation:AutomationProperties.AccessibilityView="Raw">
+                            <Path Width="16" Height="16"
+                                  Data="M 2,2 H 6 V 6 H 2 Z M 10,2 H 14 V 6 H 10 Z M 2,10 H 6 V 14 H 2 Z M 10,10 H 14 V 14 H 10 Z"
+                                  Stroke="{DynamicResource TextFillColorPrimaryBrush}"
+                                  StrokeThickness="1.3"
+                                  Fill="Transparent"/>
+                        </Viewbox>
                     </ListBoxItem>
                 </ListBox>
             </StackPanel>

@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using UniGetUI.Avalonia.ViewModels;
 
@@ -32,15 +33,20 @@ public partial class SidebarView : BaseView<SidebarViewModel>
     {
         base.OnDataContextChanged(e);
         if (DataContext is SidebarViewModel vm)
+        {
             vm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(SidebarViewModel.SelectedPageType))
                     SyncListBoxSelection(vm.SelectedPageType);
             };
+            // The startup page may already be set before this view subscribes, so apply it now.
+            SyncListBoxSelection(vm.SelectedPageType);
+        }
     }
 
     private void SyncListBoxSelection(PageType page)
     {
+        // Selection lives in two ListBoxes (main + footer); only one may hold a selection at a time.
         _lastNavItemSelectionWasAuto = true;
         NavListBox.SelectedItem = page switch
         {
@@ -50,20 +56,41 @@ public partial class SidebarView : BaseView<SidebarViewModel>
             PageType.Bundles => BundlesNavBtn,
             _ => null,
         };
+        FooterNavListBox.SelectedItem = page switch
+        {
+            PageType.Settings => SettingsNavBtn,
+            PageType.Managers => ManagersNavBtn,
+            _ => null,
+        };
         _lastNavItemSelectionWasAuto = false;
     }
 
     private void NavListBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        => HandleNavSelectionChanged(NavListBox.SelectedItem);
+
+    private void FooterNavListBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        => HandleNavSelectionChanged(FooterNavListBox.SelectedItem);
+
+    private void HandleNavSelectionChanged(object? selectedItem)
     {
         if (_lastNavItemSelectionWasAuto) return;
-        if (NavListBox.SelectedItem is ListBoxItem item && item.Tag is string tag
-            && Enum.TryParse<PageType>(tag, out var pageType))
+        if (selectedItem is not ListBoxItem item || item.Tag is not string tag) return;
+
+        if (tag == "More")
+        {
+            // Not a page: re-sync selection so "More" doesn't stay highlighted, then open its menu.
+            SyncListBoxSelection(ViewModel?.SelectedPageType ?? PageType.Null);
+            FlyoutBase.ShowAttachedFlyout(item);
+            return;
+        }
+
+        if (Enum.TryParse<PageType>(tag, out var pageType))
             ViewModel?.RequestNavigation(pageType.ToString());
     }
 
     public void FocusSelectedItem()
     {
-        if (NavListBox.SelectedItem is InputElement item)
+        if ((NavListBox.SelectedItem ?? FooterNavListBox.SelectedItem) is InputElement item)
             item.Focus();
         else
             NavListBox.Focus();
