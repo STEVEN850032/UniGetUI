@@ -12,7 +12,14 @@ public partial class ManageIgnoredUpdatesWindow : Window
         var vm = new ManageIgnoredUpdatesViewModel();
         DataContext = vm;
         InitializeComponent();
-        UniGetUI.Avalonia.Infrastructure.MicaWindowHelper.Apply(this);
+
+        // Drop the OS title-bar strip (its background clashed with the dialog) but keep
+        // the system min/max/close buttons floating over the extended client area. Default
+        // WindowDecorations (Full) keeps the system buttons; extending the client area
+        // merges the title-bar region into the content.
+        ExtendClientAreaToDecorationsHint = true;
+        ExtendClientAreaTitleBarHeightHint = -1;
+
         vm.CloseRequested += (_, _) => Close();
     }
 
@@ -21,7 +28,7 @@ public partial class ManageIgnoredUpdatesWindow : Window
         base.OnOpened(e);
         Dispatcher.UIThread.Post(() =>
         {
-            if (IgnoredUpdatesGrid.IsVisible)
+            if (((ManageIgnoredUpdatesViewModel)DataContext!).HasEntries)
                 IgnoredUpdatesGrid.Focus();
             else
                 ResetButton.Focus();
