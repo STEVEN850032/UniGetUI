@@ -3,8 +3,25 @@
              xmlns:automation="clr-namespace:Avalonia.Automation;assembly=Avalonia.Controls"
              xmlns:vm="using:UniGetUI.Avalonia.ViewModels"
              xmlns:vmd="using:UniGetUI.Avalonia.ViewModels"
+             xmlns:controls="using:UniGetUI.Avalonia.Views.Controls"
              x:Class="UniGetUI.Avalonia.Views.DialogPages.InstallOptionsControl"
              x:DataType="vm:InstallOptionsViewModel">
+
+    <UserControl.Styles>
+        <!-- WinUI-style rich tabs: roomy headers that hold an icon + two text lines. -->
+        <Style Selector="TabItem">
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <!-- WinUI tabs have no accent underline; the selected tab is shown by its background. -->
+        <Style Selector="TabItem /template/ #PART_SelectedPipe" x:SetterTargetType="Control">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+        <Style Selector="TabItem:selected /template/ #PART_SelectedPipe" x:SetterTargetType="Control">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+    </UserControl.Styles>
 
     <StackPanel Spacing="12">
 
@@ -37,12 +54,19 @@
 
         <!-- ── Follow-global-options card ── -->
         <Border Background="{DynamicResource AppDialogPanelBackground}" CornerRadius="8" Padding="16,8">
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8">
                 <TextBlock x:Name="FollowGlobalLabelBlock"
+                           Grid.Row="0" Grid.Column="0"
                            Text="{Binding FollowGlobalLabel}"
                            TextWrapping="Wrap"
                            VerticalAlignment="Center"/>
-                <ToggleSwitch Grid.Column="1"
+                <HyperlinkButton Grid.Row="1" Grid.Column="0"
+                                 Content="{Binding ChangeDefaultOptionsLabel}"
+                                 automation:AutomationProperties.Name="{Binding ChangeDefaultOptionsLabel}"
+                                 Command="{Binding ChangeDefaultOptionsCommand}"
+                                 Padding="0" Margin="0,2,0,0"
+                                 HorizontalAlignment="Left"/>
+                <ToggleSwitch Grid.RowSpan="2" Grid.Column="1"
                               IsChecked="{Binding FollowGlobal}"
                               automation:AutomationProperties.LabeledBy="{Binding #FollowGlobalLabelBlock}"
                               OnContent="" OffContent=""
@@ -50,19 +74,33 @@
             </Grid>
         </Border>
 
-        <!-- ── Options tab panel (dimmed when following global) ── -->
-        <TabControl IsEnabled="{Binding IsCustomMode}"
-                    Opacity="{Binding OptionsOpacity}"
-                    Background="Transparent">
+        <!-- ── Options area + lock overlay ── -->
+        <Grid>
+          <StackPanel Spacing="12">
+
+            <!-- Explainer (applies to every tab, like WinUI) -->
+            <TextBlock Text="{Binding GeneralInfoLabel}"
+                       Opacity="0.7"
+                       TextWrapping="Wrap"
+                       Margin="4,0"/>
+
+            <TabControl IsEnabled="{Binding IsCustomMode}"
+                        Background="Transparent">
 
             <!-- Tab 0: General -->
-            <TabItem Header="{Binding TabGeneralLabel}" FontSize="18">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/settings.svg"
+                                          Width="20" Height="20" VerticalAlignment="Center"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TabGeneralLine1}" FontSize="14"/>
+                            <TextBlock Text="{Binding TabGeneralLine2}" FontSize="12" Opacity="0.7"/>
+                        </StackPanel>
+                    </StackPanel>
+                </TabItem.Header>
                 <Border Background="{DynamicResource AppDialogPanelBackground}" CornerRadius="0,8,8,8" Padding="16">
                     <StackPanel Spacing="8">
-
-                        <TextBlock Text="{Binding GeneralInfoLabel}"
-                                   Opacity="0.7" FontSize="11"
-                                   TextWrapping="Wrap"/>
 
                         <WrapPanel Orientation="Horizontal">
                             <CheckBox Content="{Binding AdminCheckBox_Content, FallbackValue='Run as admin'}"
@@ -108,6 +146,10 @@
                                 automation:AutomationProperties.AccessibilityView="Raw"/>
 
                         <WrapPanel Orientation="Horizontal">
+                            <CheckBox Content="{Binding IgnoreUpdatesCheckBox_Content, FallbackValue='Ignore future updates for this package'}"
+                                      IsChecked="{Binding IgnoreUpdatesChecked}"
+                                      automation:AutomationProperties.Name="{Binding IgnoreUpdatesCheckBox_Content}"
+                                      Margin="0,0,16,4"/>
                             <CheckBox Content="{Binding SkipMinorCheckBox_Content, FallbackValue='Skip minor updates'}"
                                       IsChecked="{Binding SkipMinorChecked}"
                                       automation:AutomationProperties.Name="{Binding SkipMinorCheckBox_Content}"
@@ -123,7 +165,17 @@
             </TabItem>
 
             <!-- Tab 1: Architecture, Scope & Location -->
-            <TabItem Header="{Binding TabLocationLabel}" FontSize="18">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/open_folder.svg"
+                                          Width="20" Height="20" VerticalAlignment="Center"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TabLocationLine1}" FontSize="14"/>
+                            <TextBlock Text="{Binding TabLocationLine2}" FontSize="12" Opacity="0.7"/>
+                        </StackPanel>
+                    </StackPanel>
+                </TabItem.Header>
                 <Border Background="{DynamicResource AppDialogPanelBackground}" CornerRadius="0,8,8,8" Padding="16">
                     <StackPanel Spacing="8">
 
@@ -183,11 +235,34 @@
             </TabItem>
 
             <!-- Tab 2: Custom CLI arguments -->
-            <TabItem Header="{Binding TabCLILabel}" FontSize="18">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/console.svg"
+                                          Width="20" Height="20" VerticalAlignment="Center"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TabCLILine1}" FontSize="14"/>
+                            <TextBlock Text="{Binding TabCLILine2}" FontSize="12" Opacity="0.7"/>
+                        </StackPanel>
+                    </StackPanel>
+                </TabItem.Header>
                 <Border Background="{DynamicResource AppDialogPanelBackground}" CornerRadius="0,8,8,8" Padding="16">
-                    <Grid ColumnDefinitions="*,2*"
-                          RowDefinitions="Auto,Auto,Auto"
-                          ColumnSpacing="8" RowSpacing="8">
+                    <StackPanel Spacing="8">
+
+                      <!-- Security warning shown when custom CLI arguments are disabled -->
+                      <TextBlock Text="{Binding CliDisabledLabel}"
+                                 IsVisible="{Binding CliDisabledWarningVisible}"
+                                 Foreground="{DynamicResource StatusWarningForeground}"
+                                 TextWrapping="Wrap"/>
+                      <HyperlinkButton Content="{Binding GoToSecurityLabel}"
+                                       IsVisible="{Binding CliDisabledWarningVisible}"
+                                       Command="{Binding GoToSecuritySettingsCommand}"
+                                       HorizontalAlignment="Left" Padding="0" FontWeight="SemiBold"/>
+
+                      <Grid ColumnDefinitions="*,2*"
+                            RowDefinitions="Auto,Auto,Auto"
+                            ColumnSpacing="8" RowSpacing="8"
+                            IsEnabled="{Binding CliEnabled}">
 
                         <TextBlock x:Name="ParamsInstallLabelBlock" Text="{Binding ParamsInstallLabel}"
                                    VerticalAlignment="Center"/>
@@ -215,12 +290,23 @@
                                  FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
                                  FontSize="14"/>
 
-                    </Grid>
+                      </Grid>
+                    </StackPanel>
                 </Border>
             </TabItem>
 
             <!-- Tab 3: Close apps before installing -->
-            <TabItem Header="{Binding TabCloseAppsLabel}" FontSize="18">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/cross.svg"
+                                          Width="20" Height="20" VerticalAlignment="Center"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TabCloseAppsLine1}" FontSize="14"/>
+                            <TextBlock Text="{Binding TabCloseAppsLine2}" FontSize="12" Opacity="0.7"/>
+                        </StackPanel>
+                    </StackPanel>
+                </TabItem.Header>
                 <Border Background="{DynamicResource AppDialogPanelBackground}" CornerRadius="0,8,8,8" Padding="16">
                     <StackPanel Spacing="8">
 
@@ -264,14 +350,36 @@
             </TabItem>
 
             <!-- Tab 4: Pre/Post commands -->
-            <TabItem Header="{Binding TabPrePostLabel}" FontSize="18">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/clipboard_list.svg"
+                                          Width="20" Height="20" VerticalAlignment="Center"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TabPrePostLine1}" FontSize="14"/>
+                            <TextBlock Text="{Binding TabPrePostLine2}" FontSize="12" Opacity="0.7"/>
+                        </StackPanel>
+                    </StackPanel>
+                </TabItem.Header>
                 <Border Background="{DynamicResource AppDialogPanelBackground}" CornerRadius="0,8,8,8" Padding="16">
                     <StackPanel Spacing="10">
 
+                        <!-- Security warning shown when pre/post scripts are disabled -->
+                        <TextBlock Text="{Binding PrePostDisabledLabel}"
+                                   IsVisible="{Binding PrePostDisabledWarningVisible}"
+                                   Foreground="{DynamicResource StatusWarningForeground}"
+                                   TextWrapping="Wrap"/>
+                        <HyperlinkButton Content="{Binding GoToSecurityLabel}"
+                                         IsVisible="{Binding PrePostDisabledWarningVisible}"
+                                         Command="{Binding GoToSecuritySettingsCommand}"
+                                         HorizontalAlignment="Left" Padding="0" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding PrePostExplainerLabel}" TextWrapping="Wrap" Opacity="0.7"/>
+
                         <!-- Install -->
                         <Grid ColumnDefinitions="*,*"
-                              RowDefinitions="Auto,80,Auto"
-                              ColumnSpacing="8" RowSpacing="4">
+                              RowDefinitions="Auto,56,Auto"
+                              ColumnSpacing="8" RowSpacing="4"
+                              IsEnabled="{Binding PrePostEnabled}">
                             <TextBlock x:Name="PreInstallLabelBlock" Text="{Binding PreInstallLabel}" FontSize="12"/>
                             <TextBlock x:Name="PostInstallLabelBlock" Grid.Column="1"
                                        Text="{Binding PostInstallLabel}" FontSize="12"/>
@@ -298,8 +406,9 @@
 
                         <!-- Update -->
                         <Grid ColumnDefinitions="*,*"
-                              RowDefinitions="Auto,80,Auto"
-                              ColumnSpacing="8" RowSpacing="4">
+                              RowDefinitions="Auto,56,Auto"
+                              ColumnSpacing="8" RowSpacing="4"
+                              IsEnabled="{Binding PrePostEnabled}">
                             <TextBlock x:Name="PreUpdateLabelBlock" Text="{Binding PreUpdateLabel}" FontSize="12"/>
                             <TextBlock x:Name="PostUpdateLabelBlock" Grid.Column="1"
                                        Text="{Binding PostUpdateLabel}" FontSize="12"/>
@@ -326,8 +435,9 @@
 
                         <!-- Uninstall -->
                         <Grid ColumnDefinitions="*,*"
-                              RowDefinitions="Auto,80,Auto"
-                              ColumnSpacing="8" RowSpacing="4">
+                              RowDefinitions="Auto,56,Auto"
+                              ColumnSpacing="8" RowSpacing="4"
+                              IsEnabled="{Binding PrePostEnabled}">
                             <TextBlock x:Name="PreUninstallLabelBlock" Text="{Binding PreUninstallLabel}" FontSize="12"/>
                             <TextBlock x:Name="PostUninstallLabelBlock" Grid.Column="1"
                                        Text="{Binding PostUninstallLabel}" FontSize="12"/>
@@ -353,7 +463,27 @@
                 </Border>
             </TabItem>
 
-        </TabControl>
+            </TabControl>
+
+          </StackPanel>
+
+          <!-- Lock overlay shown while following the default options. A translucent solid
+               layer (composites over the in-app tabs so they show faintly behind); Avalonia
+               has no in-app gaussian blur, so this is the closest readable equivalent. -->
+          <Panel IsVisible="{Binding FollowGlobal}">
+            <Border Background="{DynamicResource AppDialogBackground}" Opacity="0.7" IsHitTestVisible="True"/>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Spacing="12" Margin="24" MaxWidth="420">
+              <TextBlock Text="{Binding PlaceholderText}"
+                         FontSize="20" FontWeight="SemiBold"
+                         TextAlignment="Center" TextWrapping="Wrap"/>
+              <Button Content="{Binding UnlockLabel}"
+                      HorizontalAlignment="Center"
+                      Padding="12,5" CornerRadius="4"
+                      Command="{Binding UnlockCommand}"/>
+            </StackPanel>
+          </Panel>
+        </Grid>
 
         <!-- ── Command-line preview ── -->
         <Border Background="{DynamicResource AppDialogPanelBackground}" CornerRadius="8" Padding="12">
