@@ -206,7 +206,7 @@ public sealed partial class PackageManagerPage : UserControl, ISettingsPage
         };
         var pathLabel = new TextBlock
         {
-            FontFamily = new FontFamily("Courier New"),
+            FontFamily = new FontFamily("Consolas,Cascadia Mono,Menlo,monospace"),
             FontSize = 14,
             TextWrapping = TextWrapping.Wrap,
         };

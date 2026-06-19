@@ -56,7 +56,7 @@ public class SettingsCard : UserControl
         {
             _rightContent = value;
             _contentPresenter.Content = value is string s
-                ? new TextBlock { Text = s, VerticalAlignment = VerticalAlignment.Center }
+                ? new TextBlock { Text = s, FontSize = 14, VerticalAlignment = VerticalAlignment.Center }
                 : value;
         }
     }
@@ -231,6 +231,7 @@ public class SettingsCard : UserControl
                 ? new TextBlock
                 {
                     Text = s,
+                    FontSize = 14,
                     TextWrapping = TextWrapping.Wrap,
                     VerticalAlignment = VerticalAlignment.Center,
                 }

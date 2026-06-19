@@ -105,6 +105,7 @@ public partial class SecureCheckboxCard : SettingsCard
         {
             VerticalAlignment = VerticalAlignment.Center,
             TextWrapping = TextWrapping.Wrap,
+            FontSize = 14,
         };
         _warningBlock = new TextBlock
         {

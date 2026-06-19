@@ -21,6 +21,7 @@
                     <TextBlock Grid.Column="0"
                                Text="{Binding HeaderText}"
                                VerticalAlignment="Center"
+                               FontSize="14"
                                TextWrapping="Wrap"/>
                     <Button x:Name="ResetButton"
                             Grid.Column="1"
@@ -87,6 +88,7 @@
                                    Grid.Column="0"
                                    Text="{Binding ArchLabel}"
                                    VerticalAlignment="Center"
+                                   FontSize="14"
                                    Opacity="{Binding ArchOpacity}"/>
                         <ComboBox Grid.Column="1"
                                   ItemsSource="{Binding ArchitectureItems}"
@@ -103,6 +105,7 @@
                                    Grid.Column="0"
                                    Text="{Binding ScopeLabel}"
                                    VerticalAlignment="Center"
+                                   FontSize="14"
                                    Opacity="{Binding ScopeOpacity}"/>
                         <ComboBox Grid.Column="1"
                                   ItemsSource="{Binding ScopeItems}"
@@ -118,6 +121,7 @@
                         <TextBlock Grid.Column="0"
                                    Text="{Binding LocationLabel}"
                                    VerticalAlignment="Center"
+                                   FontSize="14"
                                    Opacity="{Binding LocationOpacity}"/>
                         <Button x:Name="SelectDirButton"
                                 Grid.Column="1"
@@ -132,7 +136,8 @@
                                 IsEnabled="{Binding LocationResetEnabled}"/>
                     </Grid>
                     <TextBlock Text="{Binding LocationText}"
-                               FontFamily="Courier New"
+                               FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                               FontSize="14"
                                Opacity="0.6"
                                TextWrapping="Wrap"/>
 
@@ -163,11 +168,13 @@
                                    Grid.Row="0" Grid.Column="0"
                                    Text="{Binding InstallArgsLabel}"
                                    VerticalAlignment="Center"
+                                   FontSize="14"
                                    Opacity="{Binding CliOpacity}"/>
                         <TextBox   Grid.Row="0" Grid.Column="1"
                                    Text="{Binding CustomInstall}"
                                    IsEnabled="{Binding CliSectionEnabled}"
-                                   FontFamily="Courier New"
+                                   FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                   FontSize="14"
                                    x:Name="CustomInstallBox"
                                    automation:AutomationProperties.LabeledBy="{Binding #InstallArgsLabelBlock}"/>
 
@@ -175,11 +182,13 @@
                                    Grid.Row="1" Grid.Column="0"
                                    Text="{Binding UpdateArgsLabel}"
                                    VerticalAlignment="Center"
+                                   FontSize="14"
                                    Opacity="{Binding CliOpacity}"/>
                         <TextBox   Grid.Row="1" Grid.Column="1"
                                    Text="{Binding CustomUpdate}"
                                    IsEnabled="{Binding CliSectionEnabled}"
-                                   FontFamily="Courier New"
+                                   FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                   FontSize="14"
                                    x:Name="CustomUpdateBox"
                                    automation:AutomationProperties.LabeledBy="{Binding #UpdateArgsLabelBlock}"/>
 
@@ -187,11 +196,13 @@
                                    Grid.Row="2" Grid.Column="0"
                                    Text="{Binding UninstallArgsLabel}"
                                    VerticalAlignment="Center"
+                                   FontSize="14"
                                    Opacity="{Binding CliOpacity}"/>
                         <TextBox   Grid.Row="2" Grid.Column="1"
                                    Text="{Binding CustomUninstall}"
                                    IsEnabled="{Binding CliSectionEnabled}"
-                                   FontFamily="Courier New"
+                                   FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                   FontSize="14"
                                    x:Name="CustomUninstallBox"
                                    automation:AutomationProperties.LabeledBy="{Binding #UninstallArgsLabelBlock}"/>
                     </Grid>

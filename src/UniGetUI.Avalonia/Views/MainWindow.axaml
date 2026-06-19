@@ -155,7 +155,7 @@
 
                         <TextBlock Grid.Column="1"
                                    Text="{Binding OperationsHeaderText}"
-                                   FontSize="11" Opacity="0.6"
+                                   FontSize="12" Opacity="0.6"
                                    VerticalAlignment="Center"
                                    Margin="4,0,0,0"/>
 
@@ -215,7 +215,7 @@
 
                                             <TextBlock Text="{Binding Title}"
                                                        FontWeight="SemiBold"
-                                                       FontSize="13"
+                                                       FontSize="14"
                                                        TextTrimming="CharacterEllipsis"/>
 
                                             <Button Content="{Binding LiveLine}"
@@ -471,7 +471,7 @@
                         <TextBox x:Name="GlobalSearchBox"
                                  Grid.Column="0"
                                  MinHeight="20"
-                                 FontSize="15"
+                                 FontSize="14"
                                  CornerRadius="0"
                                  BorderThickness="0"
                                  VerticalContentAlignment="Center"

@@ -147,6 +147,10 @@
         <Setter Property="BorderThickness" Value="2"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
     </Style>
+    <!-- Column headers default to Avalonia's 12px bare-TextBlock size; WinUI renders them at 14px. -->
+    <Style Selector="DataGridColumnHeader">
+        <Setter Property="FontSize" Value="14"/>
+    </Style>
     <Style Selector="DataGridRow:selected">
         <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}"/>
     </Style>

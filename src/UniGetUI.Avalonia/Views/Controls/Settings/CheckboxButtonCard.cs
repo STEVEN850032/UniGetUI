@@ -92,7 +92,7 @@ public sealed partial class CheckboxButtonCard : SettingsCard
             Margin = new Thickness(2, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Center,
             TextWrapping = TextWrapping.Wrap,
-            FontWeight = FontWeight.Medium,
+            FontSize = 14,
         };
         IS_INVERTED = false;
         AutomationProperties.SetAccessibilityView(Button, AccessibilityView.Control);

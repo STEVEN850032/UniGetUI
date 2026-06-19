@@ -14,12 +14,14 @@
         <StackPanel Orientation="Vertical">
 
             <settings:TranslatedTextBlock Text="Notification preferences"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
 
             <!-- Warning shown when system tray is disabled (Windows-only) -->
             <TextBlock Text="{t:Translate The system tray icon must be enabled in order for notifications to work}"
+                       FontSize="14"
                        Margin="0,0,0,8"
                        HorizontalAlignment="Center"
                        Foreground="OrangeRed"
@@ -32,6 +34,7 @@
                                    IsEnabled="{Binding IsSystemTrayWarningVisible, Converter={x:Static BoolConverters.Not}}"/>
 
             <settings:TranslatedTextBlock Text="Notification types"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>

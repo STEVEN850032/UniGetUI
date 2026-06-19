@@ -41,6 +41,7 @@
             <StackPanel Orientation="Vertical" Spacing="2">
                 <TextBlock Text="{t:Translate Text='UniGetUI has detected the following desktop shortcuts which can be removed automatically on future upgrades'}"
                            TextWrapping="Wrap"
+                           FontWeight="Bold"
                            Opacity="0.75"/>
                 <TextBlock TextWrapping="Wrap" Opacity="0.75">
                     <TextBlock.Text>

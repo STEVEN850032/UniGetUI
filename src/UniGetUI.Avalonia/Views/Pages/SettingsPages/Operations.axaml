@@ -14,6 +14,7 @@
         <StackPanel Orientation="Vertical">
 
             <settings:TranslatedTextBlock Text="Concurrency and execution"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
@@ -39,6 +40,7 @@
                                    CornerRadius="8"/>
 
             <settings:TranslatedTextBlock Text="Automatic desktop shortcut remover"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
@@ -50,6 +52,7 @@
                                          CornerRadius="8"/>
 
             <settings:TranslatedTextBlock Text="Related settings"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>

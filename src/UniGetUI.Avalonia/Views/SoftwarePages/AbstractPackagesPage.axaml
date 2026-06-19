@@ -97,8 +97,9 @@
                 <TextBlock x:Name="MainTitle"
                            MaxHeight="60"
                            HorizontalAlignment="Left"
-                           FontSize="24"
-                           FontWeight="Bold"
+                           FontSize="28"
+                           FontWeight="SemiBold"
+                           FontFamily="Segoe UI Variable Display"
                            TextWrapping="Wrap"
                            Text="{Binding PageTitle}"/>
                 <TextBlock x:Name="MainSubtitle"
@@ -222,7 +223,7 @@
                             <Expander.Header>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/Sources.svg" Width="16" Height="16" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{t:Translate Sources}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{t:Translate Sources}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Expander.Header>
                             <StackPanel Orientation="Vertical">
@@ -341,7 +342,7 @@
                             <Expander.Header>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/Filter.svg" Width="16" Height="16" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{t:Translate Filters}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{t:Translate Filters}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Expander.Header>
                             <StackPanel HorizontalAlignment="Stretch" Orientation="Vertical" Spacing="0">
@@ -373,7 +374,7 @@
                             <Expander.Header>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/search_filled.svg" Width="16" Height="16" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{t:Translate Search mode}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{t:Translate Search mode}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Expander.Header>
                             <StackPanel HorizontalAlignment="Stretch" Orientation="Vertical" Spacing="0">
@@ -632,7 +633,7 @@
                                                 </Panel>
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
                                                     <TextBlock Text="{Binding Package.Name}"
-                                                               FontWeight="SemiBold" FontSize="13"
+                                                               FontWeight="SemiBold" FontSize="14"
                                                                TextTrimming="CharacterEllipsis"/>
                                                     <TextBlock Text="{Binding Package.Id}"
                                                                FontSize="11" Opacity="0.7"
@@ -788,7 +789,8 @@
                                          CornerRadius="0"
                                          BorderThickness="0"
                                          Background="Transparent"
-                                         FontSize="40"
+                                         FontSize="28"
+                                         FontWeight="SemiBold"
                                          PlaceholderText="{t:Translate Search for packages}"
                                          automation:AutomationProperties.Name="{t:Translate Search for packages}"
                                          Text="{Binding MegaQueryText, Mode=TwoWay}"
@@ -839,7 +841,7 @@
                         Orientation="Horizontal"
                         Spacing="4"
                         VerticalAlignment="Center">
-                <TextBlock x:Name="OrderByLabel" Text="{t:Translate Order by:}" FontSize="13" VerticalAlignment="Center"/>
+                <TextBlock x:Name="OrderByLabel" Text="{t:Translate Order by:}" FontSize="12" VerticalAlignment="Center"/>
                 <Button x:Name="OrderByButton"
                         Padding="8,3"
                         CornerRadius="4"

@@ -16,7 +16,7 @@
             <!-- Title + description -->
             <StackPanel Spacing="4">
                 <TextBlock Text="{t:Translate UniGetUI has crashed}"
-                           FontSize="22"
+                           FontSize="28"
                            FontWeight="SemiBold"/>
                 <TextBlock Text="{t:Translate Text='Help us fix this by sending a crash report to Devolutions. All fields below are optional.'}"
                            Opacity="0.7"

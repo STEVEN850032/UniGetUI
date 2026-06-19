@@ -19,14 +19,14 @@
             <TextBlock Grid.Column="1"
                        automation:AutomationProperties.Name="{Binding DialogTitle}"
                        Text="{Binding DialogTitle}"
-                       FontSize="18" FontWeight="Bold"
+                       FontSize="24" FontWeight="Bold"
                        TextWrapping="Wrap"
                        VerticalAlignment="Center"/>
 
             <StackPanel Grid.Column="2" Spacing="3" VerticalAlignment="Center">
                 <TextBlock x:Name="ProfileLabelBlock"
                            Text="{Binding ProfileLabel}"
-                           FontSize="11" Opacity="0.7"/>
+                           FontSize="14" Opacity="0.7"/>
                 <ComboBox x:Name="ProfileSelectorComboBox"
                           ItemsSource="{Binding ProfileOptions}"
                           SelectedItem="{Binding SelectedProfile}"
@@ -174,7 +174,8 @@
                         <TextBox Text="{Binding LocationText}"
                                  IsEnabled="{Binding LocationEnabled}"
                                  automation:AutomationProperties.LabeledBy="{Binding #LocationLabelBlock}"
-                                 FontFamily="Cascadia Mono,Consolas,Menlo,monospace"
+                                 FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                 FontSize="14"
                                  HorizontalAlignment="Stretch"/>
 
                     </StackPanel>
@@ -193,7 +194,8 @@
                         <TextBox Grid.Column="1"
                                  Text="{Binding ParamsInstall}"
                                  automation:AutomationProperties.LabeledBy="{Binding #ParamsInstallLabelBlock}"
-                                 FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+                                 FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                 FontSize="14"/>
 
                         <TextBlock x:Name="ParamsUpdateLabelBlock" Grid.Row="1"
                                    Text="{Binding ParamsUpdateLabel}"
@@ -201,7 +203,8 @@
                         <TextBox Grid.Row="1" Grid.Column="1"
                                  Text="{Binding ParamsUpdate}"
                                  automation:AutomationProperties.LabeledBy="{Binding #ParamsUpdateLabelBlock}"
-                                 FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+                                 FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                 FontSize="14"/>
 
                         <TextBlock x:Name="ParamsUninstallLabelBlock" Grid.Row="2"
                                    Text="{Binding ParamsUninstallLabel}"
@@ -209,7 +212,8 @@
                         <TextBox Grid.Row="2" Grid.Column="1"
                                  Text="{Binding ParamsUninstall}"
                                  automation:AutomationProperties.LabeledBy="{Binding #ParamsUninstallLabelBlock}"
-                                 FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+                                 FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                 FontSize="14"/>
 
                     </Grid>
                 </Border>
@@ -236,7 +240,8 @@
                                     <Grid ColumnDefinitions="*,Auto" Margin="0,2">
                                         <TextBlock Text="{Binding Name}"
                                                    VerticalAlignment="Center"
-                                                   FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+                                                   FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                                   FontSize="14"/>
                                         <Button Grid.Column="1"
                                                 Content="✕"
                                                 Command="{Binding RemoveCommand}"
@@ -274,12 +279,14 @@
                                      Text="{Binding PreInstallText}"
                                      AcceptsReturn="True"
                                      automation:AutomationProperties.LabeledBy="{Binding #PreInstallLabelBlock}"
-                                     FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+                                     FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                     FontSize="14"/>
                             <TextBox Grid.Row="1" Grid.Column="1"
                                      Text="{Binding PostInstallText}"
                                      AcceptsReturn="True"
                                      automation:AutomationProperties.LabeledBy="{Binding #PostInstallLabelBlock}"
-                                     FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+                                     FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                     FontSize="14"/>
                             <CheckBox Grid.Row="2" Grid.ColumnSpan="2"
                                       Content="{Binding AbortInstallLabel}"
                                       automation:AutomationProperties.Name="{Binding AbortInstallLabel}"
@@ -300,12 +307,14 @@
                                      Text="{Binding PreUpdateText}"
                                      AcceptsReturn="True"
                                      automation:AutomationProperties.LabeledBy="{Binding #PreUpdateLabelBlock}"
-                                     FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+                                     FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                     FontSize="14"/>
                             <TextBox Grid.Row="1" Grid.Column="1"
                                      Text="{Binding PostUpdateText}"
                                      AcceptsReturn="True"
                                      automation:AutomationProperties.LabeledBy="{Binding #PostUpdateLabelBlock}"
-                                     FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+                                     FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                     FontSize="14"/>
                             <CheckBox Grid.Row="2" Grid.ColumnSpan="2"
                                       Content="{Binding AbortUpdateLabel}"
                                       automation:AutomationProperties.Name="{Binding AbortUpdateLabel}"
@@ -326,12 +335,14 @@
                                      Text="{Binding PreUninstallText}"
                                      AcceptsReturn="True"
                                      automation:AutomationProperties.LabeledBy="{Binding #PreUninstallLabelBlock}"
-                                     FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+                                     FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                     FontSize="14"/>
                             <TextBox Grid.Row="1" Grid.Column="1"
                                      Text="{Binding PostUninstallText}"
                                      AcceptsReturn="True"
                                      automation:AutomationProperties.LabeledBy="{Binding #PostUninstallLabelBlock}"
-                                     FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+                                     FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                                     FontSize="14"/>
                             <CheckBox Grid.Row="2" Grid.ColumnSpan="2"
                                       Content="{Binding AbortUninstallLabel}"
                                       automation:AutomationProperties.Name="{Binding AbortUninstallLabel}"
@@ -351,8 +362,8 @@
                 <Border Background="{DynamicResource AppDialogDarkBackground}" CornerRadius="4" Padding="8">
                     <TextBlock Text="{Binding CommandPreview}"
                                automation:AutomationProperties.Name="{Binding CommandPreviewLabel}"
-                               FontFamily="Cascadia Mono,Consolas,Menlo,monospace"
-                               FontSize="12"
+                               FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                               FontSize="14"
                                TextWrapping="Wrap"/>
                 </Border>
             </StackPanel>

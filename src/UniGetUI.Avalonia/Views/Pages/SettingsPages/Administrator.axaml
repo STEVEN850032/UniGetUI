@@ -39,10 +39,12 @@
                                    TextWrapping="Wrap"
                                    Margin="0,0,0,4"/>
                         <TextBlock Text="{Binding WarningBody1}"
+                                   FontSize="14"
                                    TextWrapping="Wrap"
                                    Foreground="{DynamicResource WarningBannerSubtext}"
                                    Margin="0,0,0,6"/>
                         <TextBlock Text="{Binding WarningBody2}"
+                                   FontSize="14"
                                    TextWrapping="Wrap"
                                    Foreground="{DynamicResource WarningBannerSubtext}"/>
                     </StackPanel>
@@ -52,6 +54,7 @@
             <!-- Elevation settings (Windows-only) -->
             <StackPanel Orientation="Vertical" IsVisible="{Binding IsWindows}">
                 <settings:TranslatedTextBlock Text="Change how operations request administrator rights"
+                                              FontSize="14"
                                               FontWeight="SemiBold"
                                               Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
@@ -79,6 +82,7 @@
             </StackPanel>
 
             <settings:TranslatedTextBlock Text="Restrictions on package operations"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
@@ -97,6 +101,7 @@
                                          CornerRadius="0,0,8,8"/>
 
             <settings:TranslatedTextBlock Text="Restrictions on package managers"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
@@ -108,6 +113,7 @@
                                          CornerRadius="8"/>
 
             <settings:TranslatedTextBlock Text="Restrictions when importing package bundles"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>

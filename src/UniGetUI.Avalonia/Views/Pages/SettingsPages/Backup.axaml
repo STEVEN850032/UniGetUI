@@ -14,6 +14,7 @@
         <StackPanel Orientation="Vertical">
 
             <settings:TranslatedTextBlock Text="Package backup"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
@@ -23,7 +24,7 @@
                     <ItemsControl ItemsSource="{Binding InfoLines}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
-                                <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding}" FontSize="14" TextWrapping="Wrap"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -60,6 +61,7 @@
 
                     <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="2" VerticalAlignment="Center">
                         <TextBlock Text="{Binding GitHubUserTitle}"
+                                   FontSize="14"
                                    FontWeight="SemiBold"
                                    TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding GitHubUserSubtitle}"
@@ -96,6 +98,7 @@
                             BorderThickness="0"
                             Padding="0">
                         <TextBlock Classes="hyperlink"
+                                   FontSize="14"
                                    Text="{t:Translate More details}"
                                    automation:AutomationProperties.AccessibilityView="Raw"/>
                     </Button>
@@ -165,6 +168,7 @@
                                  CommandParameter="{Binding $self}"/>
 
             <settings:TranslatedTextBlock Text="Local backup advanced options"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>

@@ -35,8 +35,8 @@
                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="8,6">
                         <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/DiscoverPackage.svg" Width="24" Height="24" VerticalAlignment="Center" />
                         <TextBlock Text="{t:Translate Discover Packages}"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"
+                                   FontSize="14"
+                                   FontWeight="Normal"
                                    VerticalAlignment="Center"
                                    IsVisible="{Binding $parent[local:SidebarView].ShowLabels}"/>
                     </StackPanel>
@@ -60,7 +60,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="8,6">
                         <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/update.svg" Width="24" Height="24" VerticalAlignment="Center"/>
                         <TextBlock Text="{t:Translate Software Updates}"
-                                   FontSize="16"
+                                   FontSize="14"
                                    FontWeight="SemiBold"
                                    VerticalAlignment="Center"
                                    IsVisible="{Binding $parent[local:SidebarView].ShowLabels}"/>
@@ -102,7 +102,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="8,6">
                         <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/InstalledPackages.svg" Width="24" Height="24" VerticalAlignment="Center"/>
                         <TextBlock Text="{t:Translate Installed Packages}"
-                                   FontSize="16"
+                                   FontSize="14"
                                    FontWeight="SemiBold"
                                    VerticalAlignment="Center"
                                    IsVisible="{Binding $parent[local:SidebarView].ShowLabels}"/>
@@ -127,7 +127,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="8,6">
                         <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/PackagesBundle.svg" Width="24" Height="24" VerticalAlignment="Center"/>
                         <TextBlock Text="{t:Translate Package Bundles}"
-                                   FontSize="16"
+                                   FontSize="14"
                                    FontWeight="SemiBold"
                                    VerticalAlignment="Center"
                                    IsVisible="{Binding $parent[local:SidebarView].ShowLabels}"/>
@@ -163,7 +163,7 @@
                     ToolTip.Tip="{t:Translate Settings}">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/settings.svg" Width="24" Height="24" VerticalAlignment="Center"/>
-                    <TextBlock Text="{t:Translate Settings}" FontSize="16" VerticalAlignment="Center"
+                    <TextBlock Text="{t:Translate Settings}" FontSize="14" VerticalAlignment="Center"
                                IsVisible="{Binding $parent[local:SidebarView].ShowLabels}"/>
                 </StackPanel>
             </Button>
@@ -181,7 +181,7 @@
                     ToolTip.Tip="{t:Translate Package Managers}">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/clipboard_list.svg" Width="24" Height="24" VerticalAlignment="Center"/>
-                    <TextBlock Text="{t:Translate Package Managers}" FontSize="16" VerticalAlignment="Center"
+                    <TextBlock Text="{t:Translate Package Managers}" FontSize="14" VerticalAlignment="Center"
                                IsVisible="{Binding $parent[local:SidebarView].ShowLabels}"/>
                 </StackPanel>
             </Button>
@@ -197,7 +197,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <TextBlock Text="···" FontSize="20" Width="24" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                                automation:AutomationProperties.AccessibilityView="Raw"/>
-                    <TextBlock Text="{t:Translate More}" FontSize="16" VerticalAlignment="Center"
+                    <TextBlock Text="{t:Translate More}" FontSize="14" VerticalAlignment="Center"
                                IsVisible="{Binding $parent[local:SidebarView].ShowLabels}"/>
                 </StackPanel>
                 <Button.Flyout>

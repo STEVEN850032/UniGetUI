@@ -78,7 +78,8 @@
                                               Foreground="{DynamicResource TextControlForeground}"/>
                             <TextBlock Text="{Binding Name}"
                                        VerticalAlignment="Center"
-                                       FontWeight="SemiBold"
+                                       FontSize="14"
+                                       FontWeight="Normal"
                                        MinWidth="120"/>
                         </StackPanel>
                         <!-- URL -->
@@ -86,6 +87,7 @@
                                    Text="{Binding Url}"
                                    VerticalAlignment="Center"
                                    Classes="hyperlink"
+                                   FontSize="14"
                                    TextTrimming="CharacterEllipsis"
                                    Margin="8,0"/>
                         <!-- Delete -->
@@ -123,13 +125,15 @@
                          PlaceholderText="{Binding NameHint}"
                          Text="{Binding NewSourceName}"
                          IsEnabled="{Binding NameUrlEditable}"
-                         FontFamily="Courier New"
+                         FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                         FontSize="14"
                          automation:AutomationProperties.Name="{Binding NameHint}"/>
                 <TextBox Grid.Column="1"
                          PlaceholderText="{Binding UrlHint}"
                          Text="{Binding NewSourceUrl}"
                          IsEnabled="{Binding NameUrlEditable}"
-                         FontFamily="Courier New"
+                         FontFamily="Consolas,Cascadia Mono,Menlo,monospace"
+                         FontSize="14"
                          automation:AutomationProperties.Name="{Binding UrlHint}"/>
             </Grid>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">

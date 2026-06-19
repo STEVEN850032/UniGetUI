@@ -13,6 +13,7 @@
         <StackPanel Orientation="Vertical">
 
             <settings:TranslatedTextBlock Text="Proxy settings"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
@@ -48,6 +49,7 @@
             <ContentControl x:Name="ProxyCompatTableHolder"/>
 
             <settings:TranslatedTextBlock Text="Other settings"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>

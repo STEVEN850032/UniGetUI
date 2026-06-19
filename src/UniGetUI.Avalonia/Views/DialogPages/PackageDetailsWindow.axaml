@@ -142,9 +142,9 @@
                                     VerticalAlignment="Center"
                                     Spacing="4">
                             <TextBlock Text="{Binding PackageName}"
-                                       FontSize="36" FontWeight="Bold"
+                                       FontSize="40" FontWeight="Bold"
+                                       FontFamily="Segoe UI Variable Display"
                                        TextWrapping="Wrap"
-                                       LineHeight="42"
                                        automation:AutomationProperties.HeadingLevel="1"/>
                             <TextBlock Text="{Binding SourceDisplay}"
                                        FontSize="13" Opacity="0.65"/>
@@ -223,7 +223,7 @@
                                                       VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1"
                                                Text="{Binding LabelInstallationOptions}"
-                                               FontSize="15"
+                                               FontSize="16"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
                                     <Button x:Name="InstallOptionsSaveButton"

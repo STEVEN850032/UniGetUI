@@ -14,6 +14,7 @@
         <StackPanel Orientation="Vertical" Spacing="0">
 
             <settings:TranslatedTextBlock Text="Update checking"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
@@ -32,6 +33,7 @@
                                    IsEnabled="{Binding IsAutoCheckEnabled}"/>
 
             <settings:TranslatedTextBlock Text="Automatic updates"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
@@ -62,6 +64,7 @@
                                    IsEnabled="{Binding IsAutoCheckEnabled}"/>
 
             <settings:TranslatedTextBlock Text="Update security"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
@@ -90,6 +93,7 @@
                             Margin="0,8,0,0"/>
 
             <settings:TranslatedTextBlock Text="Related settings"
+                                          FontSize="14"
                                           FontWeight="SemiBold"
                                           Margin="44,32,4,8"
                                           automation:AutomationProperties.HeadingLevel="2"/>
