@@ -21,8 +21,25 @@
       <Style Selector="DataGridCell:current">
          <Setter Property="BorderBrush" Value="Transparent"/>
       </Style>
+      <!-- Remove the DataGrid's built-in line between the header and the rows -->
+      <Style Selector="DataGrid /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
+         <Setter Property="IsVisible" Value="False"/>
+      </Style>
+      <!-- Header as one inset, rounded bar (WinUI-style): rounded + inset ends, no borders/separators -->
       <Style Selector="DataGridColumnHeader">
-         <Setter Property="Background" Value="{DynamicResource SettingsCardBackground}"/>
+         <Setter Property="Background" Value="{DynamicResource PackageListHeaderBackground}"/>
+         <Setter Property="HorizontalContentAlignment" Value="Center"/>
+         <Setter Property="AreSeparatorsVisible" Value="False"/>
+         <Setter Property="SeparatorBrush" Value="Transparent"/>
+         <Setter Property="BorderThickness" Value="0"/>
+         <Setter Property="CornerRadius" Value="0"/>
+         <Setter Property="Margin" Value="0,6,0,6"/>
+      </Style>
+      <Style Selector="DataGridColumnHeader:nth-child(1)">
+         <Setter Property="CornerRadius" Value="4,0,0,4"/>
+      </Style>
+      <Style Selector="DataGridColumnHeader:nth-last-child(1)">
+         <Setter Property="CornerRadius" Value="0,4,4,0"/>
       </Style>
       <Style Selector="Expander /template/ ToggleButton#ExpanderHeader">
          <Setter Property="Background" Value="{DynamicResource SettingsCardBackground}"/>
@@ -448,9 +465,8 @@
                 <!-- Package list container -->
                 <Border Margin="0,6,0,6"
                         CornerRadius="8"
-                        BorderThickness="1"
-                        BorderBrush="{DynamicResource AppBorderBrush}"
-                        Background="{DynamicResource SettingsCardBackground}">
+                        BorderThickness="0"
+                        Background="{DynamicResource PackageListBackground}">
                 <Grid RowDefinitions="Auto,*">
                     <!-- Header bar for grid/icons views (select-all) — hidden in list mode, which has its own DataGrid header -->
                     <Border Grid.Row="0"
@@ -470,6 +486,7 @@
                                   IsVisible="{Binding IsListViewMode}"
                                   HorizontalAlignment="Stretch"
                                   VerticalAlignment="Stretch"
+                                  Margin="8,0,8,0"
                                   ItemsSource="{Binding FilteredPackages}"
                                   automation:AutomationProperties.AccessibilityView="Control"
                                   automation:AutomationProperties.Name="{Binding PageTitle}"
@@ -583,7 +600,8 @@
                              origin with the checkbox centered + the same Margin as the rows, so
                              the boxes line up regardless of cell metrics. -->
                         <Border IsVisible="{Binding IsListViewMode}"
-                                Width="40" Height="32"
+                                Width="40" Height="44"
+                                Margin="8,0,0,0"
                                 HorizontalAlignment="Left" VerticalAlignment="Top"
                                 Background="Transparent" ZIndex="10">
                             <CheckBox IsChecked="{Binding AllPackagesChecked, Mode=TwoWay}"

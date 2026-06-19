@@ -35,6 +35,14 @@
                     <SolidColorBrush x:Key="SettingsCardBackground"      Color="#FBFBFB"/>
                     <SolidColorBrush x:Key="SettingsCardBorderBrush"     Color="#ECECEC"/>
                     <SolidColorBrush x:Key="SettingsCardHoverBackground" Color="#F6F6F6"/>
+                    <!-- Package list container; near-transparent over Mica (see Styles.WindowsMica) -->
+                    <SolidColorBrush x:Key="PackageListBackground"       Color="#FBFBFB"/>
+                    <!-- Column header: WinUI default button (ControlFillColorDefault fill + ControlStrokeColorDefault border) -->
+                    <SolidColorBrush x:Key="PackageListHeaderBackground" Color="#B3FFFFFF"/>
+                    <SolidColorBrush x:Key="PackageListHeaderBorderBrush" Color="#0F000000"/>
+                    <!-- Subtle header hover/press (WinUI-style), over the rest fill -->
+                    <SolidColorBrush x:Key="DataGridColumnHeaderHoveredBackgroundBrush" Color="#05000000"/>
+                    <SolidColorBrush x:Key="DataGridColumnHeaderPressedBackgroundBrush" Color="#14000000"/>
                     <!-- Window structure -->
                     <SolidColorBrush x:Key="AppWindowBackground"         Color="#F3F3F3"/>
                     <SolidColorBrush x:Key="AppTitleBarBackground"       Color="#F3F3F3"/>
@@ -99,6 +107,14 @@
                     <SolidColorBrush x:Key="SettingsCardBackground"      Color="#2D2D2D"/>
                     <SolidColorBrush x:Key="SettingsCardBorderBrush"     Color="#393939"/>
                     <SolidColorBrush x:Key="SettingsCardHoverBackground" Color="#323232"/>
+                    <!-- Package list container; near-transparent over Mica (see Styles.WindowsMica) -->
+                    <SolidColorBrush x:Key="PackageListBackground"       Color="#2D2D2D"/>
+                    <!-- Column header: WinUI default button (ControlFillColorDefault fill + ControlStrokeColorDefault border) -->
+                    <SolidColorBrush x:Key="PackageListHeaderBackground" Color="#0FFFFFFF"/>
+                    <SolidColorBrush x:Key="PackageListHeaderBorderBrush" Color="#12FFFFFF"/>
+                    <!-- Subtle header hover/press (WinUI-style), over the rest fill -->
+                    <SolidColorBrush x:Key="DataGridColumnHeaderHoveredBackgroundBrush" Color="#0AFFFFFF"/>
+                    <SolidColorBrush x:Key="DataGridColumnHeaderPressedBackgroundBrush" Color="#1FFFFFFF"/>
                     <!-- Window structure -->
                     <SolidColorBrush x:Key="AppWindowBackground"         Color="#202020"/>
                     <SolidColorBrush x:Key="AppTitleBarBackground"       Color="#202020"/>
