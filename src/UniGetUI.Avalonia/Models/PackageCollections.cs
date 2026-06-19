@@ -65,7 +65,8 @@ public sealed class PackageWrapper : INotifyPropertyChanged, IDisposable
     public string VersionComboString { get; }
     public string ListedNameTooltip { get; private set; } = "";
     public float ListedOpacity { get; private set; } = 1.0f;
-    public string TagIconPath { get; private set; } = "";
+    public string TagBackdropIconPath { get; private set; } = "";
+    public string TagSymbolIconPath { get; private set; } = "";
     public bool TagIconVisible { get; private set; }
 
     public bool InstallerHostChanged { get; private set; }
@@ -248,7 +249,8 @@ public sealed class PackageWrapper : INotifyPropertyChanged, IDisposable
             UpdateDisplayState();
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ListedOpacity)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ListedNameTooltip)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TagIconPath)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TagBackdropIconPath)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TagSymbolIconPath)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TagIconVisible)));
         }
         else if (e.PropertyName == nameof(Package.IsChecked))
@@ -270,20 +272,20 @@ public sealed class PackageWrapper : INotifyPropertyChanged, IDisposable
         };
         ListedNameTooltip = Package.Name;
 
-        string tagName = Package.Tag switch
+        // Match WinUI: an accent-coloured filled disc with the symbol punched out, then the
+        // symbol drawn on top in the default foreground. OnQueue/Unavailable show no badge.
+        (string symbol, string backdrop) = Package.Tag switch
         {
-            PackageTag.AlreadyInstalled => "installed_filled",
-            PackageTag.IsUpgradable => "upgradable_filled",
-            PackageTag.Pinned => "pin_filled",
-            PackageTag.OnQueue => "sandclock",
-            PackageTag.BeingProcessed => "loading_filled",
-            PackageTag.Failed => "warning_filled",
-            _ => "",
+            PackageTag.AlreadyInstalled => ("installed", "installed_filled"),
+            PackageTag.IsUpgradable => ("upgradable", "upgradable_filled"),
+            PackageTag.Pinned => ("pin", "pin_filled"),
+            PackageTag.BeingProcessed => ("loading", "loading_filled"),
+            PackageTag.Failed => ("warning", "warning_filled"),
+            _ => ("", ""),
         };
-        TagIconVisible = tagName.Length > 0;
-        TagIconPath = TagIconVisible
-            ? $"avares://UniGetUI.Avalonia/Assets/Symbols/{tagName}.svg"
-            : "";
+        TagIconVisible = symbol.Length > 0;
+        TagSymbolIconPath = TagIconVisible ? $"avares://UniGetUI.Avalonia/Assets/Symbols/{symbol}.svg" : "";
+        TagBackdropIconPath = TagIconVisible ? $"avares://UniGetUI.Avalonia/Assets/Symbols/{backdrop}.svg" : "";
     }
 
     public void Dispose()

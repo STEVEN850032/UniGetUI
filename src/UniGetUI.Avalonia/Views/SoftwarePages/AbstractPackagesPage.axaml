@@ -522,8 +522,17 @@
                                                            Stretch="Uniform" IsVisible="{Binding HasCustomIcon}"/>
                                                     <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/package.svg"
                                                                       Width="24" Height="24" IsVisible="{Binding !HasCustomIcon}"/>
-                                                    <controls:SvgIcon Path="{Binding TagIconPath}"
-                                                                      Width="12" Height="12"
+                                                    <controls:SvgIcon Path="{Binding TagBackdropIconPath}"
+                                                                      Foreground="{DynamicResource SystemAccentColor}"
+                                                                      Width="20" Height="20"
+                                                                      Margin="0,0,-3,-3"
+                                                                      IsVisible="{Binding TagIconVisible}"
+                                                                      HorizontalAlignment="Right"
+                                                                      VerticalAlignment="Bottom"/>
+                                                    <controls:SvgIcon Path="{Binding TagSymbolIconPath}"
+                                                                      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                                      Width="20" Height="20"
+                                                                      Margin="0,0,-3,-3"
                                                                       IsVisible="{Binding TagIconVisible}"
                                                                       HorizontalAlignment="Right"
                                                                       VerticalAlignment="Bottom"/>
@@ -636,8 +645,17 @@
                                                            Stretch="Uniform" IsVisible="{Binding HasCustomIcon}"/>
                                                     <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/package.svg"
                                                                       Width="44" Height="44" IsVisible="{Binding !HasCustomIcon}"/>
-                                                    <controls:SvgIcon Path="{Binding TagIconPath}"
-                                                                      Width="17" Height="17"
+                                                    <controls:SvgIcon Path="{Binding TagBackdropIconPath}"
+                                                                      Foreground="{DynamicResource SystemAccentColor}"
+                                                                      Width="28" Height="28"
+                                                                      Margin="0,0,-4,-4"
+                                                                      IsVisible="{Binding TagIconVisible}"
+                                                                      HorizontalAlignment="Right"
+                                                                      VerticalAlignment="Bottom"/>
+                                                    <controls:SvgIcon Path="{Binding TagSymbolIconPath}"
+                                                                      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                                      Width="28" Height="28"
+                                                                      Margin="0,0,-4,-4"
                                                                       IsVisible="{Binding TagIconVisible}"
                                                                       HorizontalAlignment="Right"
                                                                       VerticalAlignment="Bottom"/>
@@ -736,8 +754,17 @@
                                                            Stretch="Uniform" IsVisible="{Binding HasCustomIcon}"/>
                                                     <controls:SvgIcon Path="avares://UniGetUI.Avalonia/Assets/Symbols/package.svg"
                                                                       Width="64" Height="64" IsVisible="{Binding !HasCustomIcon}"/>
-                                                    <controls:SvgIcon Path="{Binding TagIconPath}"
-                                                                      Width="24" Height="24"
+                                                    <controls:SvgIcon Path="{Binding TagBackdropIconPath}"
+                                                                      Foreground="{DynamicResource SystemAccentColor}"
+                                                                      Width="38" Height="38"
+                                                                      Margin="0,0,-5,-5"
+                                                                      IsVisible="{Binding TagIconVisible}"
+                                                                      HorizontalAlignment="Right"
+                                                                      VerticalAlignment="Bottom"/>
+                                                    <controls:SvgIcon Path="{Binding TagSymbolIconPath}"
+                                                                      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                                      Width="38" Height="38"
+                                                                      Margin="0,0,-5,-5"
                                                                       IsVisible="{Binding TagIconVisible}"
                                                                       HorizontalAlignment="Right"
                                                                       VerticalAlignment="Bottom"/>
